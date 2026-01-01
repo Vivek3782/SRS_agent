@@ -17,6 +17,9 @@ class RequirementAgent:
             default_headers={
                 "HTTP-Referer": "http://localhost",
                 "X-Title": "Requirement-Gathering-Agent"
+            },
+            model_kwargs={
+                "response_format": {"type": "json_object"}
             }
         )
 
@@ -45,7 +48,6 @@ class RequirementAgent:
             "additional_questions_asked": additional_questions_asked
         }
 
-
         messages = [
             SystemMessage(content=SYSTEM_PROMPT),
             HumanMessage(content=str(user_payload))
@@ -54,4 +56,5 @@ class RequirementAgent:
         response = self.llm.invoke(messages)
 
         # OpenRouter returns JSON string → strict parse
-        return AgentOutput.model_validate_json(response.content)
+        parsed = AgentOutput.model_validate_json(response.content)
+        return parsed.root

@@ -1,5 +1,5 @@
-from pydantic import BaseModel
-from typing import Any, Dict, Optional, Literal
+from pydantic import BaseModel, RootModel
+from typing import Any, Dict, Optional, Literal, Union
 from app.agent.intents import IntentType
 
 
@@ -10,11 +10,21 @@ class PendingIntentModel(BaseModel):
 
 class AskOutput(BaseModel):
     status: Literal["ASK"]
-    phase: str
+    phase: Literal[
+        "INIT",
+        "BUSINESS",
+        "FUNCTIONAL",
+        "NON_FUNCTIONAL",
+        "ADDITIONAL"
+    ]
     question: str
     updated_context: Dict[str, Any]
     pending_intent: PendingIntentModel
     additional_questions_asked: int = 0
+
+    model_config = {
+        "extra": "forbid"
+    }
 
 
 class CompleteOutput(BaseModel):
@@ -22,6 +32,12 @@ class CompleteOutput(BaseModel):
     phase: Literal["COMPLETE"]
     requirements: Dict[str, Any]
 
+    model_config = {
+        "extra": "forbid"
+    }
 
-class AgentOutput(BaseModel):
-    output: AskOutput | CompleteOutput
+
+class AgentOutput(RootModel[Union[AskOutput, CompleteOutput]]):
+
+    def unwrap(self):
+        return self.root

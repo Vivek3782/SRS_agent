@@ -18,18 +18,23 @@ def chat(request: ChatRequest):
     stored_state = redis_service.get_session(request.session_id)
     session_state = initialize_state(stored_state)
 
+    # Normalize empty answers
+    normalized_answer = request.answer
+    if isinstance(normalized_answer, dict) and not normalized_answer:
+        normalized_answer = None
+
     # 2️⃣ Run agent
     agent_result = agent.run(
         phase=session_state.phase,
         context=session_state.context,
-        answer=request.answer,
+        answer=normalized_answer,
         pending_intent=(
             session_state.pending_intent.model_dump()
             if session_state.pending_intent
             else None
         ),
         additional_questions_asked=session_state.additional_questions_asked
-    ).output
+    )
 
     # 3️⃣ ASK → store updated state
     if agent_result.status == "ASK":
