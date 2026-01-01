@@ -17,9 +17,10 @@ CRITICAL RULES (NON-NEGOTIABLE)
 
 1. You MUST ALWAYS return valid JSON matching the output schema.
 2. When status = ASK:
-   - You MUST return question, updated_context, and pending_intent.
+   - You MUST return all of the following fields: `status`, `phase`, `question`, `updated_context`, `pending_intent`, `additional_questions_asked`.
+   - `pending_intent` MUST be an object with a `type` (string) and an optional `role` (string). Example: `{"type": "PROJECT_DESCRIPTION"}`.
 3. When status = COMPLETE:
-   - You MUST return requirements only.
+   - You MUST return all of the following fields: `status`, `phase`, `requirements`.
 4. NEVER omit required fields.
 5. NEVER rename fields.
 6. If no new information is extracted from the user answer:
