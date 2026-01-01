@@ -7,14 +7,14 @@ def merge_project_description(context: dict, answer: str) -> dict:
 
 
 def merge_role_definition(context: dict, answer: str) -> dict:
-    if not answer:
-        return context
-
-    roles = [r.strip() for r in answer.split(",") if r.strip()]
-    context.setdefault("roles", {})
-
-    for role in roles:
-        context["roles"].setdefault(role.lower(), {})
+    """
+    Merge role definitions into context.
+    """
+    roles = context.setdefault("roles", {})
+    for role in answer.split(","):
+        role_name = role.strip()
+        if role_name:
+            roles.setdefault(role_name, {})
 
     return context
 
@@ -26,7 +26,17 @@ def merge_role_features(context: dict, role: str, answer: str) -> dict:
     features = [f.strip() for f in answer.split(",") if f.strip()]
 
     context.setdefault("roles", {})
+
+    # Defensive: ensure role is a dictionary
+    if role in context["roles"] and not isinstance(context["roles"][role], dict):
+        context["roles"][role] = {}
+
     context["roles"].setdefault(role, {})
+
+    # Defensive: ensure features is a list
+    if "features" in context["roles"][role] and not isinstance(context["roles"][role]["features"], list):
+        context["roles"][role]["features"] = []
+
     context["roles"][role].setdefault("features", [])
 
     context["roles"][role]["features"].extend(features)
