@@ -1,0 +1,57 @@
+from langchain_openai import ChatOpenAI
+from langchain_core.messages import SystemMessage, HumanMessage
+
+from app.agent.prompt import SYSTEM_PROMPT
+from app.agent.output_parser import AgentOutput
+from app.agent.intent_handler import consume_intent
+from app.config import settings
+
+
+class RequirementAgent:
+    def __init__(self):
+        self.llm = ChatOpenAI(
+            api_key=settings.openrouter_api_key,
+            base_url=settings.openrouter_base_url,
+            model=settings.openrouter_model,
+            temperature=0,
+            default_headers={
+                "HTTP-Referer": "http://localhost",
+                "X-Title": "Requirement-Gathering-Agent"
+            }
+        )
+
+    def run(
+        self,
+        *,
+        phase: str,
+        context: dict,
+        answer,
+        pending_intent,
+        additional_questions_asked: int
+    ) -> AgentOutput:
+
+        # 1️⃣ Apply pending intent BEFORE calling LLM
+        updated_context = consume_intent(
+            intent=pending_intent,
+            context=context.copy(),
+            answer=answer
+        )
+
+        user_payload = {
+            "phase": phase,
+            "context": updated_context,
+            "answer": answer,
+            "pending_intent": pending_intent,
+            "additional_questions_asked": additional_questions_asked
+        }
+
+
+        messages = [
+            SystemMessage(content=SYSTEM_PROMPT),
+            HumanMessage(content=str(user_payload))
+        ]
+
+        response = self.llm.invoke(messages)
+
+        # OpenRouter returns JSON string → strict parse
+        return AgentOutput.model_validate_json(response.content)
