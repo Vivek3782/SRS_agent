@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     # App
     app_name: str = "Requirement Gathering Agent"
     debug: bool = True
+    BASE_DIR: Path = BASE_DIR
 
     # Redis
     redis_host: str = "localhost"

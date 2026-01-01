@@ -1,20 +1,15 @@
 from datetime import datetime
 from app.schemas.state import SessionState
 
-
 def initialize_state(existing_state: dict | None) -> SessionState:
-    """
-    Normalize Redis data into a valid SessionState.
-    """
     if not existing_state:
         return SessionState(
             phase="INIT",
             context={},
-            additional_questions_asked=0
+            additional_questions_asked=0,
+            history=[] # Initialize empty history
         )
-
     return SessionState(**existing_state)
-
 
 def build_ask_state(
     *,
@@ -22,11 +17,9 @@ def build_ask_state(
     context: dict,
     question: str,
     pending_intent: dict | None,
-    additional_questions_asked: int
+    additional_questions_asked: int,
+    history: list # <--- Add history argument
 ) -> dict:
-    """
-    Build the state object to persist on ASK.
-    """
     state = SessionState(
         phase=phase,
         context=context,
@@ -35,7 +28,7 @@ def build_ask_state(
             "asked_at": datetime.utcnow().isoformat()
         },
         pending_intent=pending_intent,
-        additional_questions_asked=additional_questions_asked
+        additional_questions_asked=additional_questions_asked,
+        history=history # <--- Persist history
     )
-
     return state.model_dump()

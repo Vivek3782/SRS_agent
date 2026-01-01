@@ -5,3 +5,4 @@ redis
 langchain
 langchain-core
 langchain-openai
+openpyxl
