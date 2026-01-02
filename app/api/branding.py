@@ -3,82 +3,76 @@ from pydantic import BaseModel
 from app.services.branding_service import branding_service
 from app.services.export_service import save_branding_files
 from app.agent.branding_agent import BrandingAgent
-from app.schemas.branding import BrandingResponse, BrandingTurn
+from app.schemas.branding import BrandingResponse, BrandingAskResponse, BrandingCompleteResponse, BrandingTurn
 from typing import Optional, Any
 
 router = APIRouter()
 agent = BrandingAgent()
 
+
 class BrandingRequest(BaseModel):
     session_id: str
     answer: Optional[Any] = None
 
+
 @router.post("/branding/chat", response_model=BrandingResponse)
 def chat_branding(request: BrandingRequest):
-    # 1. Load State (or create new)
+    # 1. Load State
     state = branding_service.get_state(request.session_id)
 
     # 2. Check if already complete
     if state.is_complete:
-        return BrandingResponse(status="COMPLETE", profile=state.profile)
-
-    # 3. If this is a reply (not the first load), record the history
-    # Note: We need to know what the *last* question was to record the pair.
-    # For simplicity, we just run the agent first to process the answer.
-    
-    agent_result = agent.run(state.profile, request.answer)
-
-    # 4. Update State Logic
-    if request.answer and state.history: 
-        # Update the PREVIOUS turn with this answer? 
-        # Actually, simpler approach: Record the interaction that JUST happened.
-        # But we don't have the question yet.
-        # Let's assume the Frontend sends the answer to the *previous* question.
-        pass
-
-    # Update Profile
-    state.profile = agent_result.updated_profile
-
-    # If the agent asked a question, we are still in "ASK" mode
-    if not agent_result.is_complete and agent_result.next_question:
-        # Record this turn (User Answer -> New Question? No, usually Question -> Answer)
-        # To keep transcript simple:
-        if request.answer:
-            # We don't have the text of the question asked *before* this answer easily 
-            # unless we stored it. But for now, let's just log the flow.
-            state.history.append(BrandingTurn(
-                question="[Previous Question]", 
-                answer=request.answer
-            ))
-        
-        # Save 'next_question' so we can log it next time? 
-        # Alternatively, just append the question now with empty answer?
-        # Let's append the NEW question to history to be filled later? 
-        # No, easier: Just append the answer to the list.
-        
-        branding_service.save_state(request.session_id, state)
-        
-        return BrandingResponse(
-            status="ASK",
-            question=agent_result.next_question,
-            profile=state.profile
+        return BrandingCompleteResponse(
+            status="COMPLETE",
+            phase="BRANDING",
+            requirements=state.profile.model_dump(exclude_none=True)
         )
 
-    # 5. Handle Completion
+    # 3. Run Agent
+    # We pass the answer to the agent (or empty string if it's the first connection)
+    agent_result = agent.run(state.profile, request.answer)
+
+    # 4. Update Profile
+    state.profile = agent_result.updated_profile
+
+    # 5. Handle "ASK" Status
+    if not agent_result.is_complete and agent_result.next_question:
+        if request.answer:
+            # Use the stored previous question, or fallback if missing
+            prev_q = state.last_question if state.last_question else "[Unknown Question]"
+
+            state.history.append(BrandingTurn(
+                question=prev_q,
+                answer=request.answer
+            ))
+
+        # Store THIS question so we know it for the next turn
+        state.last_question = agent_result.next_question
+        branding_service.save_state(request.session_id, state)
+
+        return BrandingAskResponse(
+            status="ASK",
+            phase="BRANDING",
+            question=agent_result.next_question,
+            # ✅ FIX: Use exclude_none=True to hide null fields
+            context=state.profile.model_dump(exclude_none=True)
+        )
+
+    # 6. Handle "COMPLETE" Status
     else:
         state.is_complete = True
-        
-        # Capture final answer if any
-        if request.answer:
-             state.history.append(BrandingTurn(question="Final Input", answer=request.answer))
 
-        # Save to Disk (JSON + XLSX)
+        if request.answer:
+            prev_q = state.last_question if state.last_question else "Final Input"
+            state.history.append(BrandingTurn(
+                question=prev_q, answer=request.answer))
+
         save_branding_files(request.session_id, state.model_dump())
-        
-        # Clean up Redis
         branding_service.delete_state(request.session_id)
 
-        return BrandingResponse(
+        return BrandingCompleteResponse(
             status="COMPLETE",
-            profile=state.profile
+            phase="BRANDING",
+            # ✅ FIX: Use exclude_none=True here too
+            requirements=state.profile.model_dump(exclude_none=True)
         )
