@@ -6,22 +6,38 @@ from app.config import settings
 from app.schemas.estimation import SiteMapResponse
 
 ESTIMATION_SYSTEM_PROMPT = """
-You are an expert UX Architect and Product Manager.
+You are an expert UX Architect.
 You will be provided with two data sources:
-1. **SRS (Software Requirements):** The functional scope, roles, and features.
-2. **BRANDING PROFILE:** The company name, audience, and voice.
+1. **SRS (Software Requirements)**
+2. **BRANDING PROFILE**
 
 **YOUR TASK:**
-Combine these inputs to generate a comprehensive Sitemap.
+Generate a comprehensive Sitemap JSON.
 
-**LOGIC:**
-1. **Business Type:** Infer from SRS + Branding (e.g., "SRS says cars" + "Branding says tourists" = "Car Rental for Tourists").
-2. **Page Naming:** Use the Company Name from Branding to label pages (e.g., "About [Company Name]").
-3. **Audience Alignment:** If Branding says "Elderly Users", ensure page descriptions mention simplicity.
-4. **Standard Pages:** Always include Home, About, Contact, etc., tailored to the brand.
+**STRICT JSON OUTPUT STRUCTURE:**
+You must return a SINGLE JSON object with exactly two keys: "business_type" and "pages".
 
-**OUTPUT:**
-Return strictly valid JSON matching the schema.
+{
+  "business_type": "Inferred Business Type (e.g., SaaS Platform)",
+  "pages": [
+    {
+      "name": "Page Name (e.g. Home)",
+      "description": "Why this page exists",
+      "features": ["Feature 1", "Feature 2"],
+      "url": "/home",
+      "complexity": "Medium",
+      "notes": ""
+    }
+  ]
+}
+
+**CRITICAL RULES:**
+1. **NO 'sitemap' KEY:** The root object must ONLY have "business_type" and "pages". Do not wrap them in another object.
+2. **Page Naming:** Use the Company Name from Branding (e.g., "About Acme").
+3. **Standard Pages:** Always include Home, About, Contact.
+4. **Markdown:** Do NOT use markdown formatting.
+5. **Complexity Estimation:** For each page, estimate implementation complexity (Low, Medium, High) based on the number of features.
+6. **Notes:** Add brief tech notes (e.g., "Requires Auth Middleware").
 """
 
 class PageEstimationAgent:
@@ -35,7 +51,7 @@ class PageEstimationAgent:
         )
 
     def estimate(self, srs_data: dict, branding_data: dict | None) -> SiteMapResponse:
-        # 1. Serialize both inputs safely
+        # 1. Serialize inputs
         try:
             srs_str = json.dumps(srs_data, indent=2, ensure_ascii=False)
         except:
@@ -48,7 +64,7 @@ class PageEstimationAgent:
             except:
                 branding_str = str(branding_data)
 
-        # 2. Build the Dual-Input Prompt
+        # 2. Invoke AI
         messages = [
             SystemMessage(content=ESTIMATION_SYSTEM_PROMPT),
             HumanMessage(content=f"""
@@ -63,7 +79,7 @@ class PageEstimationAgent:
         response = self.llm.invoke(messages)
         content = response.content.strip()
 
-        # 3. Cleanup & Validate (Standard logic)
+        # 3. Cleanup String (Markdown & Commas)
         if "```" in content:
             pattern = r"```(?:json)?\s*(.*?)\s*```"
             match = re.search(pattern, content, re.DOTALL)
@@ -71,8 +87,33 @@ class PageEstimationAgent:
         
         content = re.sub(r",\s*([\]}])", r"\1", content)
 
+        # 4. Parse to Dict first (for Repair Logic)
         try:
-            return SiteMapResponse.model_validate_json(content)
+            data = json.loads(content)
+        except json.JSONDecodeError as e:
+            print(f"JSON Parse Error: {e}\nContent: {content}")
+            raise e
+
+        # --- REPAIR LOGIC START ---
+        # The AI sometimes wraps everything in "sitemap" or misses "business_type"
+        
+        # Case A: Wrapped in "sitemap" key
+        if "sitemap" in data and isinstance(data["sitemap"], list):
+            data["pages"] = data.pop("sitemap")
+        
+        # Case B: Missing "business_type"
+        if "business_type" not in data:
+            data["business_type"] = "Standard Web Application" # Default fallback
+            
+        # Case C: If "pages" is missing but keys look like a list
+        if "pages" not in data and isinstance(data, list):
+             # AI returned just the list of pages
+             data = {"business_type": "inferred", "pages": data}
+        # --- REPAIR LOGIC END ---
+
+        # 5. Final Validation
+        try:
+            return SiteMapResponse.model_validate(data)
         except Exception as e:
-            print(f"Validation Failed. Content: {content[:200]}...")
+            print(f"Validation Failed. Data: {data}")
             raise e

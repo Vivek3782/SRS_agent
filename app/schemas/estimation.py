@@ -42,6 +42,8 @@ class PageSchema(BaseModel):
     description: str
     features: List[str] = []
     url: Optional[str] = None
+    complexity: str = "Medium"
+    notes: str = ""
 
 
 class SiteMapResponse(BaseModel):

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from app.services.export_service import get_latest_requirements_file, save_estimated_sitemap, get_branding_export
+from app.services.export_service import get_latest_requirements_file, save_estimated_sitemap, get_branding_export, append_screens_to_excel
 from app.agent.estimator import PageEstimationAgent
 from app.schemas.estimation import SiteMapResponse, EstimateRequest, DeleteEstimationRequest
 
@@ -30,6 +30,11 @@ def generate_sitemap(request: EstimateRequest):
 
     # 4. Save the result
     save_estimated_sitemap(request.session_id, sitemap.model_dump())
+
+    try:
+        append_screens_to_excel(request.session_id, sitemap.model_dump())
+    except Exception as e:
+        print(f"Failed to update Excel: {e}")
 
     return sitemap
 

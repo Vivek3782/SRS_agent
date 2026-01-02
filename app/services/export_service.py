@@ -98,6 +98,51 @@ def save_estimated_sitemap(session_id: str, sitemap_data: dict):
 
     return filepath
 
+from openpyxl import load_workbook
+
+def append_screens_to_excel(session_id: str, sitemap_data: dict):
+    # 1. Find the existing Excel file (Scanning EXPORT_XLSX_DIR)
+    # (Assuming you have a function to find the file, similar to get_latest_requirements_file)
+    search_pattern = EXPORT_XLSX_DIR / f"session_{session_id}_*.xlsx"
+    files = glob.glob(str(search_pattern))
+    
+    if not files:
+        print("No Excel file found to append screens.")
+        return None
+        
+    latest_file = max(files, key=os.path.getctime)
+    
+    # 2. Load Workbook
+    wb = load_workbook(latest_file)
+    
+    # 3. Manage "Screens" Sheet
+    if "Screens" in wb.sheetnames:
+        # Option A: Delete and recreate (simplest for updates)
+        del wb["Screens"]
+    
+    ws = wb.create_sheet("Screens")
+    
+    # 4. Write Headers
+    headers = ["Screen Name", "Complexity", "Notes", "Description", "Features"]
+    ws.append(headers)
+    
+    # 5. Write Data
+    for page in sitemap_data.get("pages", []):
+        # Handle list of features for CSV-like cell
+        features_str = ", ".join(page.get("features", []))
+        
+        ws.append([
+            page.get("name"),
+            page.get("complexity", "Medium"),
+            page.get("notes", ""),
+            page.get("description", ""),
+            features_str
+        ])
+        
+    # 6. Save
+    wb.save(latest_file)
+    return latest_file
+
 
 def delete_estimated_sitemap(session_id: str):
     """
@@ -179,3 +224,4 @@ def get_branding_export(session_id: str) -> dict | None:
             return json.load(f)
     except Exception:
         return None
+
