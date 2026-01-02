@@ -1,37 +1,36 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from app.services.export_service import get_latest_requirements_file, save_estimated_sitemap
+from app.services.export_service import get_latest_requirements_file, save_estimated_sitemap, get_branding_export
 from app.agent.estimator import PageEstimationAgent
 from app.schemas.estimation import SiteMapResponse, EstimateRequest, DeleteEstimationRequest
 
 router = APIRouter()
 estimator = PageEstimationAgent()
 
+class EstimateRequest(BaseModel):
+    session_id: str
 
 @router.post("/estimate", response_model=SiteMapResponse)
 def generate_sitemap(request: EstimateRequest):
-    # 1. READ: Get the latest requirements from exports_json
-    source_filepath, srs_data = get_latest_requirements_file(
-        request.session_id)
+    # 1. Fetch SRS Data (Technical Requirements)
+    srs_filepath, srs_data = get_latest_requirements_file(request.session_id)
+    if not srs_filepath or not srs_data:
+        raise HTTPException(status_code=404, detail="SRS Requirements not found.")
 
-    if not source_filepath or not srs_data:
-        raise HTTPException(
-            status_code=404,
-            detail=f"No requirements file found for session_id: {request.session_id}"
-        )
+    # 2. Fetch Branding Data (Company Profile)
+    # It's okay if this is None (e.g. legacy sessions), we handle it gracefully.
+    branding_data = get_branding_export(request.session_id)
 
-    # 2. PROCESS: Run the AI Estimation
+    # 3. RUN ESTIMATOR with BOTH inputs
     try:
-        sitemap = estimator.estimate(srs_data)
+        # We pass both dictionaries to the agent
+        sitemap = estimator.estimate(srs_data, branding_data)
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"AI Estimation failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"AI Estimation failed: {str(e)}")
 
-    # 3. WRITE: Save to the NEW separate folder
-    saved_path = save_estimated_sitemap(
-        request.session_id, sitemap.model_dump())
+    # 4. Save the result
+    save_estimated_sitemap(request.session_id, sitemap.model_dump())
 
-    # 4. Return result (Client can see the path in logs or response headers if needed)
     return sitemap
 
 @router.delete("/estimate", response_model=SiteMapResponse)

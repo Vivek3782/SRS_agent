@@ -7,7 +7,7 @@ from app.schemas.state import ConversationItem
 
 from app.services.redis_service import redis_service
 from app.services.state_manager import initialize_state, build_ask_state
-from app.services.export_service import save_to_excel 
+from app.services.export_service import save_to_excel , get_branding_export
 
 from app.agent.agent import RequirementAgent
 
@@ -18,7 +18,22 @@ agent = RequirementAgent()
 def chat(request: ChatRequest):
     # 1️⃣ Load existing session
     stored_state = redis_service.get_session(request.session_id)
-    session_state = initialize_state(stored_state)
+    if not stored_state:
+        # Check if they have finished the Branding Phase
+        branding_data = get_branding_export(request.session_id)
+        
+        if not branding_data:
+            # BLOCKED: User skipped the branding interview
+            raise HTTPException(
+                status_code=403, 
+                detail="Branding Phase Required. Please complete the company profile interview first."
+            )
+            
+        # The SRS Agent stays purely technical.
+        session_state = initialize_state(None)
+        
+    else:
+        session_state = initialize_state(stored_state)
 
     # Normalize empty answers
     normalized_answer = request.answer

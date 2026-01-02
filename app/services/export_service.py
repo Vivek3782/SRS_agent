@@ -157,3 +157,25 @@ def save_branding_files(session_id: str, state_data: dict):
     wb.save(xlsx_path)
 
     return json_path, xlsx_path
+
+BRANDING_JSON_DIR = settings.BASE_DIR / "exports_branding_json"
+def get_branding_export(session_id: str) -> dict | None:
+    """
+    Checks if a completed Branding Profile exists for this session.
+    Returns the profile data dict if found, otherwise None.
+    """
+    # Pattern: branding_profile_{session_id}_{timestamp}.json
+    search_pattern = BRANDING_JSON_DIR / f"branding_profile_{session_id}_*.json"
+    files = glob.glob(str(search_pattern))
+    
+    if not files:
+        return None
+    
+    # Get the latest one if multiple exist
+    latest_file = max(files, key=os.path.getctime)
+    
+    try:
+        with open(latest_file, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return None
