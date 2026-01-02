@@ -3,6 +3,7 @@ from app.config import settings
 from app.api.chat import router as chat_router
 from app.api.export import router as export_router
 from app.api.estimation import router as estimation_router
+from app.api.branding import router as branding_router
 
 app = FastAPI(
     title=settings.app_name,
@@ -12,7 +13,7 @@ app = FastAPI(
 app.include_router(chat_router)
 app.include_router(export_router)
 app.include_router(estimation_router)
-
+app.include_router(branding_router)
 
 @app.get("/health")
 def health_check():

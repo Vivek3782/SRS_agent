@@ -121,3 +121,39 @@ def delete_estimated_sitemap(session_id: str):
     except Exception as e:
         print(f"Error deleting file {latest_file}: {e}")
         return None
+
+#for branding 
+BRANDING_JSON_DIR = settings.BASE_DIR / "exports_branding_json"
+BRANDING_XLSX_DIR = settings.BASE_DIR / "exports_branding_xlsx"
+
+os.makedirs(BRANDING_JSON_DIR, exist_ok=True)
+os.makedirs(BRANDING_XLSX_DIR, exist_ok=True)
+
+def save_branding_files(session_id: str, state_data: dict):
+    """
+    Saves both JSON profile and Excel transcript.
+    """
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    
+    # 1. Save JSON Profile
+    json_filename = f"branding_profile_{session_id}_{timestamp}.json"
+    json_path = BRANDING_JSON_DIR / json_filename
+    
+    with open(json_path, "w", encoding="utf-8") as f:
+        json.dump(state_data["profile"], f, indent=4)
+
+    # 2. Save Excel Transcript
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Branding Chat"
+    ws.append(["Question", "User Answer"]) # Headers
+
+    history = state_data.get("history", [])
+    for turn in history:
+        ws.append([turn["question"], turn["answer"]])
+
+    xlsx_filename = f"branding_chat_{session_id}_{timestamp}.xlsx"
+    xlsx_path = BRANDING_XLSX_DIR / xlsx_filename
+    wb.save(xlsx_path)
+
+    return json_path, xlsx_path
