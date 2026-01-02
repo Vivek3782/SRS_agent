@@ -40,6 +40,7 @@ You must return a SINGLE JSON object with exactly two keys: "business_type" and 
 6. **Notes:** Add brief tech notes (e.g., "Requires Auth Middleware").
 """
 
+
 class PageEstimationAgent:
     def __init__(self):
         self.llm = ChatOpenAI(
@@ -60,7 +61,8 @@ class PageEstimationAgent:
         branding_str = "No Branding Data Available"
         if branding_data:
             try:
-                branding_str = json.dumps(branding_data, indent=2, ensure_ascii=False)
+                branding_str = json.dumps(
+                    branding_data, indent=2, ensure_ascii=False)
             except:
                 branding_str = str(branding_data)
 
@@ -83,8 +85,9 @@ class PageEstimationAgent:
         if "```" in content:
             pattern = r"```(?:json)?\s*(.*?)\s*```"
             match = re.search(pattern, content, re.DOTALL)
-            content = match.group(1) if match else content.replace("```json", "").replace("```", "").strip()
-        
+            content = match.group(1) if match else content.replace(
+                "```json", "").replace("```", "").strip()
+
         content = re.sub(r",\s*([\]}])", r"\1", content)
 
         # 4. Parse to Dict first (for Repair Logic)
@@ -96,19 +99,19 @@ class PageEstimationAgent:
 
         # --- REPAIR LOGIC START ---
         # The AI sometimes wraps everything in "sitemap" or misses "business_type"
-        
+
         # Case A: Wrapped in "sitemap" key
         if "sitemap" in data and isinstance(data["sitemap"], list):
             data["pages"] = data.pop("sitemap")
-        
+
         # Case B: Missing "business_type"
         if "business_type" not in data:
-            data["business_type"] = "Standard Web Application" # Default fallback
-            
+            data["business_type"] = "Standard Web Application"  # Default fallback
+
         # Case C: If "pages" is missing but keys look like a list
         if "pages" not in data and isinstance(data, list):
-             # AI returned just the list of pages
-             data = {"business_type": "inferred", "pages": data}
+            # AI returned just the list of pages
+            data = {"business_type": "inferred", "pages": data}
         # --- REPAIR LOGIC END ---
 
         # 5. Final Validation
