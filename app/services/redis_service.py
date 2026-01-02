@@ -27,11 +27,12 @@ class RedisService:
 
     def set_session(self, session_id: str, data: dict) -> None:
         key = f"session:{session_id}"
-        self.client.setex(
-            key,
-            settings.redis_ttl_seconds,
-            json.dumps(data)
-        )
+        serialized = json.dumps(data)
+
+        if settings.redis_ttl_seconds:
+            self.client.setex(key, settings.redis_ttl_seconds, serialized)
+        else:
+            self.client.set(key, serialized)
 
     def delete_session(self, session_id: str) -> None:
         key = f"session:{session_id}"
