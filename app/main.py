@@ -5,6 +5,10 @@ from app.api.export import router as export_router
 from app.api.estimation import router as estimation_router
 from app.api.branding import router as branding_router
 from app.api.gen_prompts import router as gen_prompts_router
+from app.database import engine, Base
+from app.models.user import User
+
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title=settings.app_name,

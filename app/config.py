@@ -12,15 +12,29 @@ class Settings(BaseSettings):
     BASE_DIR: Path = BASE_DIR
 
     # Redis
-    redis_host: str = "localhost"
-    redis_port: int = 6379
-    redis_db: int = 0
+    redis_host: str
+    redis_port: int
+    redis_db: int
     redis_ttl_seconds: int | None = None
 
     # OpenRouter
     openrouter_api_key: str
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
     openrouter_model: str = "openai/gpt-oss-120b:free"
+
+    # Export
+    EXPORT_XLSX_DIR: Path = BASE_DIR / "exports_xlsx"
+    PROMPTS_JSON_DIR: Path = BASE_DIR / "exports_prompts_json"
+
+    postgres_user: str
+    postgres_password: str
+    postgres_server: str
+    postgres_port: int
+    postgres_db: str
+
+    @property
+    def database_url(self) -> str:
+        return f"postgresql://{self.postgres_user}:{self.postgres_password}@{self.postgres_server}:{self.postgres_port}/{self.postgres_db}"
 
     model_config = SettingsConfigDict(
         env_file=BASE_DIR / ".env",

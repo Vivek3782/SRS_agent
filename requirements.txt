@@ -6,3 +6,7 @@ langchain
 langchain-core
 langchain-openai
 openpyxl
+sqlalchemy
+psycopg2-binary
+passlib[bcrypt]
+python-multipart
