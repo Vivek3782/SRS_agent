@@ -1,39 +1,57 @@
 import os
+import json
 from datetime import datetime
 from openpyxl import Workbook
 from app.config import settings
 
-# Ensure an export directory exists
-EXPORT_DIR = settings.BASE_DIR / "exports"
-os.makedirs(EXPORT_DIR, exist_ok=True)
+# 1. Define Separate Directories
+EXPORT_XLSX_DIR = settings.BASE_DIR / "exports_xlsx"
+EXPORT_JSON_DIR = settings.BASE_DIR / "exports_json"
+
+# 2. Ensure Both Directories Exist
+os.makedirs(EXPORT_XLSX_DIR, exist_ok=True)
+os.makedirs(EXPORT_JSON_DIR, exist_ok=True)
 
 def save_to_excel(session_id: str, history: list):
     """
-    Saves the conversation history to an Excel file.
-    Columns: Question | Answer | Timestamp | Customer ID
+    Saves the conversation history to the 'exports_xlsx' folder.
     """
     wb = Workbook()
     ws = wb.active
     ws.title = "Conversation Log"
 
-    # 1. Create Headers
     headers = ["Question", "Answer", "Timestamp", "Customer ID"]
     ws.append(headers)
 
-    # 2. Append Data
     for item in history:
-        # item is a dict when coming from Redis/Pydantic dump
-        ws.append([
-            item["question"],
-            item["answer"],
-            item["timestamp"],
-            item["session_id"]
-        ])
+        # Handle both dict (from Redis) and object (from memory)
+        q = item.get("question") if isinstance(item, dict) else item.question
+        a = item.get("answer") if isinstance(item, dict) else item.answer
+        t = item.get("timestamp") if isinstance(item, dict) else item.timestamp
+        s = item.get("session_id") if isinstance(item, dict) else item.session_id
+        
+        ws.append([q, a, t, s])
 
-    # 3. Save File
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = f"session_{session_id}_{timestamp}.xlsx"
-    filepath = EXPORT_DIR / filename
     
+    # Save to XLSX Directory
+    filepath = EXPORT_XLSX_DIR / filename
     wb.save(filepath)
+    return filepath
+
+
+def save_requirements(session_id: str, requirements: dict):
+    """
+    Saves the final requirements JSON to the 'exports_json' folder.
+    """
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"requirements_{session_id}_{timestamp}.json"
+    
+    # Save to JSON Directory
+    filepath = EXPORT_JSON_DIR / filename
+    
+    with open(filepath, "w", encoding="utf-8") as f:
+        json.dump(requirements, f, indent=4, ensure_ascii=False)
+        
     return filepath

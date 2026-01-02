@@ -7,7 +7,7 @@ from app.schemas.state import ConversationItem # Import this
 
 from app.services.redis_service import redis_service
 from app.services.state_manager import initialize_state, build_ask_state
-from app.services.export_service import save_to_excel # Import this
+from app.services.export_service import save_to_excel, save_requirements # Import this
 
 from app.agent.agent import RequirementAgent
 
@@ -79,7 +79,12 @@ def chat(request: ChatRequest):
                 session_id=request.session_id,
                 history=[item.model_dump() for item in session_state.history]
             )
+            
         # -------------------------------------
+        save_requirements(
+            session_id=request.session_id,
+            requirements=agent_result.requirements
+        )
         
         redis_service.delete_session(request.session_id)
 
