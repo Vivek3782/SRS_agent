@@ -31,7 +31,6 @@ def generate_sitemap(request: EstimateRequest):
 
     # 3. RUN ESTIMATOR with BOTH inputs
     try:
-        # We pass both dictionaries to the agent
         sitemap = estimator.estimate(srs_data, branding_data)
     except Exception as e:
         raise HTTPException(

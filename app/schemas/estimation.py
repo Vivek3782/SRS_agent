@@ -14,7 +14,6 @@ class EstimateRequest(BaseModel):
         estimated_pages_dir = settings.BASE_DIR / "estimated_pages_json"
         search_pattern = estimated_pages_dir / f"sitemap_{v}_*.json"
 
-        # Check if any file matches the pattern
         if glob.glob(str(search_pattern)):
             raise ValueError("You already created a estimation")
         return v
@@ -31,7 +30,6 @@ class DeleteEstimationRequest(BaseModel):
         estimated_pages_dir = settings.BASE_DIR / "estimated_pages_json"
         search_pattern = estimated_pages_dir / f"sitemap_{v}_*.json"
 
-        # Check if any file matches the pattern
         if not glob.glob(str(search_pattern)):
             raise ValueError("No estimation found for session_id")
         return v

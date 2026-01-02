@@ -90,15 +90,11 @@ class PageEstimationAgent:
 
         content = re.sub(r",\s*([\]}])", r"\1", content)
 
-        # 4. Parse to Dict first (for Repair Logic)
         try:
             data = json.loads(content)
         except json.JSONDecodeError as e:
             print(f"JSON Parse Error: {e}\nContent: {content}")
             raise e
-
-        # --- REPAIR LOGIC START ---
-        # The AI sometimes wraps everything in "sitemap" or misses "business_type"
 
         # Case A: Wrapped in "sitemap" key
         if "sitemap" in data and isinstance(data["sitemap"], list):
@@ -106,15 +102,13 @@ class PageEstimationAgent:
 
         # Case B: Missing "business_type"
         if "business_type" not in data:
-            data["business_type"] = "Standard Web Application"  # Default fallback
+            data["business_type"] = "Standard Web Application"  
 
         # Case C: If "pages" is missing but keys look like a list
         if "pages" not in data and isinstance(data, list):
             # AI returned just the list of pages
             data = {"business_type": "inferred", "pages": data}
-        # --- REPAIR LOGIC END ---
 
-        # 5. Final Validation
         try:
             return SiteMapResponse.model_validate(data)
         except Exception as e:

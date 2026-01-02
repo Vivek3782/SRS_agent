@@ -1,6 +1,4 @@
-import json
 from app.services.redis_service import redis_service
-from app.config import settings
 from app.schemas.branding import BrandingState
 
 class BrandingService:

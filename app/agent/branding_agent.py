@@ -5,7 +5,6 @@ from app.schemas.branding import CompanyProfile
 from pydantic import BaseModel, Field
 from typing import Optional
 
-# --- UPDATED PROMPT: STRICTER & MORE EFFICIENT ---
 BRANDING_SYSTEM_PROMPT = """
 You are an expert **Brand Strategist and UX Consultant**.
 Your goal is to interview the user to build a "Company Profile" before technical requirements gathering begins.

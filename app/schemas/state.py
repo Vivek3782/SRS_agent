@@ -9,13 +9,11 @@ class LastQuestion(BaseModel):
     text: str
     asked_at: str
 
-# --- NEW CLASS ---
 class ConversationItem(BaseModel):
     question: str
     answer: str
     timestamp: str
     session_id: str
-# -----------------
 
 class SessionState(BaseModel):
     phase: str
@@ -26,5 +24,4 @@ class SessionState(BaseModel):
     
     additional_questions_asked: int = 0
     
-    # --- NEW FIELD ---
     history: List[ConversationItem] = []

@@ -9,7 +9,7 @@ class RedisService:
             host=settings.redis_host,
             port=settings.redis_port,
             db=settings.redis_db,
-            decode_responses=True  # return strings, not bytes
+            decode_responses=True  
         )
 
     def get_session(self, session_id: str) -> dict | None:
@@ -22,7 +22,6 @@ class RedisService:
         try:
             return json.loads(value)
         except json.JSONDecodeError:
-            # corrupted data → treat as new session
             return None
 
     def set_session(self, session_id: str, data: dict) -> None:

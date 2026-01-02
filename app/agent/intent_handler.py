@@ -8,7 +8,6 @@ from app.utils.merge import (
     merge_additional_info,
 )
 
-
 def consume_intent(
     *,
     intent: dict | None,
@@ -49,5 +48,4 @@ def consume_intent(
     if intent_type == IntentType.ADDITIONAL_INFO:
         return merge_additional_info(context, answer)
 
-    # Unknown intent → no-op (safe fallback)
     return context

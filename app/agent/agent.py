@@ -33,7 +33,7 @@ class RequirementAgent:
         additional_questions_asked: int
     ) -> AgentOutput:
 
-        # 1️⃣ Apply pending intent BEFORE calling LLM
+        # 1️ Apply pending intent BEFORE calling LLM
         updated_context = consume_intent(
             intent=pending_intent,
             context=context.copy(),

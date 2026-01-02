@@ -5,12 +5,9 @@ from datetime import datetime
 from openpyxl import Workbook
 from app.config import settings
 
-# 1. Define Separate Directories
 EXPORT_XLSX_DIR = settings.BASE_DIR / "exports_xlsx"
 EXPORT_JSON_DIR = settings.BASE_DIR / "exports_json"
 ESTIMATED_PAGES_DIR = settings.BASE_DIR / "estimated_pages_json"
-
-# 2. Ensure Both Directories Exist
 os.makedirs(EXPORT_XLSX_DIR, exist_ok=True)
 os.makedirs(EXPORT_JSON_DIR, exist_ok=True)
 os.makedirs(ESTIMATED_PAGES_DIR, exist_ok=True)
@@ -72,7 +69,6 @@ def get_latest_requirements_file(session_id: str):
     if not files:
         return None, None
 
-    # Get the most recent file
     latest_file = max(files, key=os.path.getctime)
 
     try:
@@ -102,7 +98,6 @@ from openpyxl import load_workbook
 
 def append_screens_to_excel(session_id: str, sitemap_data: dict):
     # 1. Find the existing Excel file (Scanning EXPORT_XLSX_DIR)
-    # (Assuming you have a function to find the file, similar to get_latest_requirements_file)
     search_pattern = EXPORT_XLSX_DIR / f"session_{session_id}_*.xlsx"
     files = glob.glob(str(search_pattern))
     
@@ -117,7 +112,6 @@ def append_screens_to_excel(session_id: str, sitemap_data: dict):
     
     # 3. Manage "Screens" Sheet
     if "Screens" in wb.sheetnames:
-        # Option A: Delete and recreate (simplest for updates)
         del wb["Screens"]
     
     ws = wb.create_sheet("Screens")
@@ -154,7 +148,6 @@ def delete_estimated_sitemap(session_id: str):
     if not files:
         return None
 
-    # Get the most recent file
     latest_file = max(files, key=os.path.getctime)
 
     try:
@@ -209,7 +202,7 @@ def get_branding_export(session_id: str) -> dict | None:
     Checks if a completed Branding Profile exists for this session.
     Returns the profile data dict if found, otherwise None.
     """
-    # Pattern: branding_profile_{session_id}_{timestamp}.json
+    
     search_pattern = BRANDING_JSON_DIR / f"branding_profile_{session_id}_*.json"
     files = glob.glob(str(search_pattern))
     

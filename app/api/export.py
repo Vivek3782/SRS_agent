@@ -6,7 +6,6 @@ from app.config import settings
 
 router = APIRouter()
 
-# Define paths (must match what is in export_service.py)
 EXPORT_XLSX_DIR = settings.BASE_DIR / "exports_xlsx"
 EXPORT_JSON_DIR = settings.BASE_DIR / "exports_json"
 

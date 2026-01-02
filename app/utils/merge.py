@@ -27,13 +27,11 @@ def merge_role_features(context: dict, role: str, answer: str) -> dict:
 
     context.setdefault("roles", {})
 
-    # Defensive: ensure role is a dictionary
     if role in context["roles"] and not isinstance(context["roles"][role], dict):
         context["roles"][role] = {}
 
     context["roles"].setdefault(role, {})
 
-    # Defensive: ensure features is a list
     if "features" in context["roles"][role] and not isinstance(context["roles"][role]["features"], list):
         context["roles"][role]["features"] = []
 
@@ -41,7 +39,6 @@ def merge_role_features(context: dict, role: str, answer: str) -> dict:
 
     context["roles"][role]["features"].extend(features)
 
-    # deduplicate
     context["roles"][role]["features"] = list(
         set(context["roles"][role]["features"])
     )

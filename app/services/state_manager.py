@@ -7,7 +7,7 @@ def initialize_state(existing_state: dict | None) -> SessionState:
             phase="INIT",
             context={},
             additional_questions_asked=0,
-            history=[] # Initialize empty history
+            history=[] 
         )
     return SessionState(**existing_state)
 
@@ -18,7 +18,7 @@ def build_ask_state(
     question: str,
     pending_intent: dict | None,
     additional_questions_asked: int,
-    history: list # <--- Add history argument
+    history: list 
 ) -> dict:
     state = SessionState(
         phase=phase,
@@ -29,6 +29,6 @@ def build_ask_state(
         },
         pending_intent=pending_intent,
         additional_questions_asked=additional_questions_asked,
-        history=history # <--- Persist history
+        history=history 
     )
     return state.model_dump()

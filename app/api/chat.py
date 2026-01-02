@@ -16,7 +16,7 @@ agent = RequirementAgent()
 
 @router.post("/chat", response_model=AskResponse | CompleteResponse)
 def chat(request: ChatRequest):
-    # 1️⃣ Load existing session
+    # 1️ Load existing session
     stored_state = redis_service.get_session(request.session_id)
     if not stored_state:
         # Check if they have finished the Branding Phase
@@ -28,8 +28,7 @@ def chat(request: ChatRequest):
                 status_code=403, 
                 detail="Branding Phase Required. Please complete the company profile interview first."
             )
-            
-        # The SRS Agent stays purely technical.
+    
         session_state = initialize_state(None)
         
     else:
@@ -51,7 +50,7 @@ def chat(request: ChatRequest):
         session_state.history.append(new_item)
     # ------------------------------------
 
-    # 2️⃣ Run agent
+    # 2️ Run agent
     agent_result = agent.run(
         phase=session_state.phase,
         context=session_state.context,
@@ -64,7 +63,7 @@ def chat(request: ChatRequest):
         additional_questions_asked=session_state.additional_questions_asked
     )
 
-    # 3️⃣ ASK → store updated state
+    # 3️ ASK → store updated state
     if agent_result.status == "ASK":
         redis_service.set_session(
             request.session_id,
@@ -85,9 +84,8 @@ def chat(request: ChatRequest):
             context=agent_result.updated_context
         )
 
-    # 4️⃣ COMPLETE → cleanup + return final requirements
+    # 4️ COMPLETE → cleanup + return final requirements
     if agent_result.status == "COMPLETE":
-        # --- LOGIC CHANGE: Export to Excel ---
         if session_state.history:
             save_to_excel(
                 session_id=request.session_id,

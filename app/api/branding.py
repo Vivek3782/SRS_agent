@@ -29,7 +29,6 @@ def chat_branding(request: BrandingRequest):
         )
 
     # 3. Run Agent
-    # We pass the answer to the agent (or empty string if it's the first connection)
     agent_result = agent.run(state.profile, request.answer)
 
     # 4. Update Profile
@@ -46,7 +45,6 @@ def chat_branding(request: BrandingRequest):
                 answer=request.answer
             ))
 
-        # Store THIS question so we know it for the next turn
         state.last_question = agent_result.next_question
         branding_service.save_state(request.session_id, state)
 
@@ -73,6 +71,5 @@ def chat_branding(request: BrandingRequest):
         return BrandingCompleteResponse(
             status="COMPLETE",
             phase="BRANDING",
-            # ✅ FIX: Use exclude_none=True here too
             requirements=state.profile.model_dump(exclude_none=True)
         )
