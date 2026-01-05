@@ -1,21 +1,21 @@
 from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.services.auth_service import auth_service
 from app.services.user_service import user_service
-from app.schemas.token import Token
+from app.schemas.token import Token, RefreshToken
+from app.schemas.user import UserLogin
 from app.config import settings
 
 router = APIRouter()
 
 
 @router.post("/login", response_model=Token)
-async def login_for_access_token(db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = Depends()):
+async def login_for_access_token(user_login: UserLogin, db: Session = Depends(get_db)):
     user = user_service.authenticate_user(
-        db, form_data.username, form_data.password)
+        db, user_login.email, user_login.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -38,14 +38,15 @@ async def login_for_access_token(db: Session = Depends(get_db), form_data: OAuth
 
 
 @router.post("/refresh", response_model=Token)
-async def refresh_token(refresh_token: str, db: Session = Depends(get_db)):
+async def refresh_token(refresh_token: RefreshToken, db: Session = Depends(get_db)):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
 
-    payload = auth_service.verify_token(refresh_token, credentials_exception)
+    payload = auth_service.verify_token(
+        refresh_token.refresh_token, credentials_exception)
 
     if payload.get("type") != "refresh":
         raise HTTPException(
@@ -64,8 +65,6 @@ async def refresh_token(refresh_token: str, db: Session = Depends(get_db)):
     access_token = auth_service.create_access_token(
         data={"sub": user.email}, expires_delta=access_token_expires
     )
-    # Rotate refresh token? Or keep same? Usually good to rotate, but for now simple.
-    # Let's emit a new refresh token too to keep it alive.
     new_refresh_token = auth_service.create_refresh_token(
         data={"sub": user.email}
     )

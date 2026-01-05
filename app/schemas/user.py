@@ -35,5 +35,11 @@ class UserRegister(BaseModel):
     username: str
     password: str = Field(..., min_length=6)
 
+
 class UserDelete(BaseModel):
     user_id: UUID
+
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
