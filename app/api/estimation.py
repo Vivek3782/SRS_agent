@@ -5,7 +5,8 @@ from app.agent.estimator import PageEstimationAgent
 from app.schemas.estimation import SiteMapResponse, EstimateRequest, DeleteEstimationRequest
 from app.models.user import User
 from app.api.deps import get_current_user
-
+from app.config import settings
+import glob
 router = APIRouter()
 estimator = PageEstimationAgent()
 
@@ -16,6 +17,19 @@ class EstimateRequest(BaseModel):
 
 @router.post("/estimate", response_model=SiteMapResponse)
 def generate_sitemap(request: EstimateRequest, current_user: User = Depends(get_current_user)):
+
+    search_pattern = settings.EXPORT_JSON_DIR / \
+        f"requirements_{request.session_id}_*.json"
+    if not glob.glob(str(search_pattern)):
+        raise HTTPException(
+            status_code=400, detail="this session for SRS is not completed yet")
+
+    search_pattern = settings.EXPORT_ESTIMATED_DIR / \
+        f"sitemap_{request.session_id}_*.json"
+    if glob.glob(str(search_pattern)):
+        raise HTTPException(
+            status_code=400, detail="this session is already estimated")
+
     # 1. Fetch SRS Data (Technical Requirements)
     srs_filepath, srs_data = get_latest_requirements_file(request.session_id)
     if not srs_filepath or not srs_data:

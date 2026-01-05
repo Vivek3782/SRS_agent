@@ -6,6 +6,9 @@ from app.schemas.gen_prompts import PromptGenerationOutput
 from app.models.user import User
 from app.api.deps import get_current_user
 
+from app.config import settings
+import glob
+
 router = APIRouter()
 agent = PromptGenerationAgent()
 
@@ -22,19 +25,33 @@ def generate_prompts(request: PromptRequest, current_user: User = Depends(get_cu
     import os
     import json
 
-    search = ESTIMATED_PAGES_DIR / f"sitemap_{request.session_id}_*.json"
-    files = glob.glob(str(search))
+    search_sitemap = ESTIMATED_PAGES_DIR / \
+        f"sitemap_{request.session_id}_*.json"
+    sitemap_files = glob.glob(str(search_sitemap))
 
-    if not files:
+    if not sitemap_files:
         raise HTTPException(
             status_code=404, detail="Sitemap not found. Please run /estimate first.")
 
-    latest_sitemap = max(files, key=os.path.getctime)
+    search_prompts = settings.EXPORT_PROMPTS_DIR / \
+        f"prompts_{request.session_id}_*.json"
+    prompt_files = glob.glob(str(search_prompts))
+
+    if prompt_files:
+        raise HTTPException(
+            status_code=400, detail="Prompts already generated.")
+
+    latest_sitemap = max(sitemap_files, key=os.path.getctime)
 
     with open(latest_sitemap, "r") as f:
         sitemap_data = json.load(f)
 
-    result = agent.generate(sitemap_data)
+    # 3. Fetch Branding Data (to enrich prompts)
+    from app.services.export_service import get_branding_export
+    branding_data = get_branding_export(request.session_id)
+
+    # 4. Run Agent with enriched context
+    result = agent.generate(sitemap_data, branding_data)
 
     save_prompts_data(request.session_id, result.model_dump())
 
