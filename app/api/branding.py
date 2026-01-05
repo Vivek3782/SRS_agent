@@ -1,5 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
+import glob
+from app.config import settings
 from app.services.branding_service import branding_service
 from app.services.export_service import save_branding_files
 from app.agent.branding_agent import BrandingAgent
@@ -19,10 +21,24 @@ class BrandingRequest(BaseModel):
 
 @router.post("/branding/chat", response_model=BrandingResponse)
 def chat_branding(request: BrandingRequest, current_user: User = Depends(get_current_user)):
+    # 0. Check if session already has an exported XLSX
+    search_pattern = settings.EXPORT_XLSX_DIR / \
+        f"session_{request.session_id}_*.xlsx"
+    if glob.glob(str(search_pattern)):
+        raise HTTPException(
+            status_code=400, detail="this session is already completed")
+
     # 1. Load State
     state = branding_service.get_state(request.session_id)
+    # 2. Check if already started (running) but no answer provided
+    # Normalize empty answer
+    is_empty_answer = request.answer is None or (
+        isinstance(request.answer, dict) and not request.answer)
+    if state.last_question and is_empty_answer:
+        raise HTTPException(
+            status_code=400, detail=f"session {request.session_id} is already started with last question {state.last_question}")
 
-    # 2. Check if already complete
+    # 3. Check if already complete
     if state.is_complete:
         return BrandingCompleteResponse(
             status="COMPLETE",
@@ -54,7 +70,6 @@ def chat_branding(request: BrandingRequest, current_user: User = Depends(get_cur
             status="ASK",
             phase="BRANDING",
             question=agent_result.next_question,
-            # ✅ FIX: Use exclude_none=True to hide null fields
             context=state.profile.model_dump(exclude_none=True)
         )
 

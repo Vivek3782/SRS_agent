@@ -37,9 +37,13 @@ class UserRegister(BaseModel):
 
 
 class UserDelete(BaseModel):
-    user_id: UUID
+    user_id: str
 
 
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
+
+
+class Msg(BaseModel):
+    message: str
