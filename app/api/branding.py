@@ -1,10 +1,12 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from app.services.branding_service import branding_service
 from app.services.export_service import save_branding_files
 from app.agent.branding_agent import BrandingAgent
 from app.schemas.branding import BrandingResponse, BrandingAskResponse, BrandingCompleteResponse, BrandingTurn
 from typing import Optional, Any
+from app.models.user import User
+from app.api.deps import get_current_user
 
 router = APIRouter()
 agent = BrandingAgent()
@@ -16,7 +18,7 @@ class BrandingRequest(BaseModel):
 
 
 @router.post("/branding/chat", response_model=BrandingResponse)
-def chat_branding(request: BrandingRequest):
+def chat_branding(request: BrandingRequest, current_user: User = Depends(get_current_user)):
     # 1. Load State
     state = branding_service.get_state(request.session_id)
 

@@ -1,8 +1,10 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from app.services.export_service import get_latest_requirements_file, save_estimated_sitemap, get_branding_export, append_screens_to_excel
 from app.agent.estimator import PageEstimationAgent
 from app.schemas.estimation import SiteMapResponse, EstimateRequest, DeleteEstimationRequest
+from app.models.user import User
+from app.api.deps import get_current_user
 
 router = APIRouter()
 estimator = PageEstimationAgent()
@@ -13,7 +15,7 @@ class EstimateRequest(BaseModel):
 
 
 @router.post("/estimate", response_model=SiteMapResponse)
-def generate_sitemap(request: EstimateRequest):
+def generate_sitemap(request: EstimateRequest, current_user: User = Depends(get_current_user)):
     # 1. Fetch SRS Data (Technical Requirements)
     srs_filepath, srs_data = get_latest_requirements_file(request.session_id)
     if not srs_filepath or not srs_data:
@@ -48,7 +50,7 @@ def generate_sitemap(request: EstimateRequest):
 
 
 @router.delete("/estimate", response_model=SiteMapResponse)
-def delete_estimation(request: DeleteEstimationRequest):
+def delete_estimation(request: DeleteEstimationRequest, current_user: User = Depends(get_current_user)):
     from app.services.export_service import delete_estimated_sitemap
 
     try:

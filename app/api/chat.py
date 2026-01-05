@@ -1,13 +1,15 @@
 from datetime import datetime
-from fastapi import APIRouter, HTTPException
+from app.models.user import User
+from app.api.deps import get_current_user
+from fastapi import APIRouter, HTTPException, Depends
 
 from app.schemas.request import ChatRequest
 from app.schemas.response import AskResponse, CompleteResponse
-from app.schemas.state import ConversationItem 
+from app.schemas.state import ConversationItem
 
 from app.services.redis_service import redis_service
 from app.services.state_manager import initialize_state, build_ask_state
-from app.services.export_service import save_to_excel , get_branding_export
+from app.services.export_service import save_to_excel, get_branding_export
 
 from app.agent.agent import RequirementAgent
 
@@ -15,22 +17,22 @@ router = APIRouter()
 agent = RequirementAgent()
 
 @router.post("/chat", response_model=AskResponse | CompleteResponse)
-def chat(request: ChatRequest):
+def chat(request: ChatRequest, current_user: User = Depends(get_current_user)):
     # 1️ Load existing session
     stored_state = redis_service.get_session(request.session_id)
     if not stored_state:
         # Check if they have finished the Branding Phase
         branding_data = get_branding_export(request.session_id)
-        
+
         if not branding_data:
             # BLOCKED: User skipped the branding interview
             raise HTTPException(
-                status_code=403, 
+                status_code=403,
                 detail="Branding Phase Required. Please complete the company profile interview first."
             )
-    
+
         session_state = initialize_state(None)
-        
+
     else:
         session_state = initialize_state(stored_state)
 
@@ -91,7 +93,7 @@ def chat(request: ChatRequest):
                 session_id=request.session_id,
                 history=[item.model_dump() for item in session_state.history]
             )
-        
+
         redis_service.delete_session(request.session_id)
 
         return CompleteResponse(
