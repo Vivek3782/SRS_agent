@@ -7,6 +7,8 @@ from app.api.branding import router as branding_router
 from app.api.gen_prompts import router as gen_prompts_router
 from app.database import engine, Base
 from app.models.user import User
+from app.api.user import router as user_router
+from app.api.auth import router as auth_router
 
 Base.metadata.create_all(bind=engine)
 
@@ -20,6 +22,9 @@ app.include_router(export_router)
 app.include_router(estimation_router)
 app.include_router(branding_router)
 app.include_router(gen_prompts_router)
+app.include_router(user_router, prefix="/users", tags=["Users"])
+app.include_router(auth_router, prefix="/auth", tags=["Auth"])
+
 
 @app.get("/health")
 def health_check():
