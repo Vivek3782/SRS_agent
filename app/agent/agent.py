@@ -30,7 +30,8 @@ class RequirementAgent:
         context: dict,
         answer,
         pending_intent,
-        additional_questions_asked: int
+        additional_questions_asked: int,
+        last_question: str = None
     ) -> AgentOutput:
 
         # 1️ Apply pending intent BEFORE calling LLM
@@ -42,8 +43,10 @@ class RequirementAgent:
 
         user_payload = {
             "phase": phase,
+            "original_context": context,
             "context": updated_context,
             "answer": answer,
+            "last_question": last_question,
             "pending_intent": pending_intent,
             "additional_questions_asked": additional_questions_asked
         }

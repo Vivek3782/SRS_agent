@@ -28,6 +28,12 @@ def chat_branding(request: BrandingRequest, current_user: User = Depends(get_cur
         raise HTTPException(
             status_code=400, detail="this session is already completed")
 
+    search_pattern = settings.EXPORT_BRANDING_DIR / \
+        f"branding_chat_{request.session_id}_*.xlsx"
+    if glob.glob(str(search_pattern)):
+        raise HTTPException(
+            status_code=400, detail="this session is already completed")
+
     # 1. Load State
     state = branding_service.get_state(request.session_id)
     # 2. Check if already started (running) but no answer provided
