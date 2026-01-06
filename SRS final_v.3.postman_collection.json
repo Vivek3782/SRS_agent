@@ -1,0 +1,1197 @@
+{
+	"info": {
+		"_postman_id": "ccd578ec-fd57-43c4-9cbd-9b32b54ba91e",
+		"name": "SRS final_v.3",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "50648280",
+		"_collection_link": "https://arjun-82047-5140256.postman.co/workspace/arjun's-Workspace~d678697f-33cd-4dd2-8a2c-27653a47fa12/collection/50648280-ccd578ec-fd57-43c4-9cbd-9b32b54ba91e?action=share&source=collection_link&creator=50648280"
+	},
+	"item": [
+		{
+			"name": "Login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Parse the JSON response body\r",
+							"var jsonData = pm.response.json();\r",
+							"console.log(jsonData.access_token)\r",
+							"// Set the access_token in the environment variable if it exists\r",
+							"if (jsonData.access_token) {\r",
+							"    pm.environment.set(\"access_token\", jsonData.access_token);\r",
+							"}   "
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"email\":\"vivek@gmail.com\",\r\n    \"password\": \"123456\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8000/auth/login",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"auth",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Refresh",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Parse the JSON response body\r",
+							"var jsonData = pm.response.json();\r",
+							"console.log(jsonData.access_token)\r",
+							"// Set the access_token in the environment variable if it exists\r",
+							"if (jsonData.access_token) {\r",
+							"    pm.environment.set(\"access_token\", jsonData.access_token);\r",
+							"}   "
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"refresh_token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ2aXZla0BnbWFpbC5jb20iLCJleHAiOjE3NjgyNzk2MTgsInR5cGUiOiJyZWZyZXNoIn0.qpOfkUMI9qesE-g73ulPixrKa3_ym2uuZiUX5BRJtKc\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/auth/refresh",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"auth",
+						"refresh"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Brand start",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"session_id\": \"a007\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/branding/chat",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"branding",
+						"chat"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Brand Q1",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"session_id\": \"a007\",\r\n    \"answer\": \"Our company is named **ForgeTrack Operations**, and we specialize in providing high-precision **Factory Management Systems (FMS)** for the heavy machinery and automotive manufacturing sectors.\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/branding/chat",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"branding",
+						"chat"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Brand Q2",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"session_id\": \"a007\",\r\n    \"answer\": \"Our primary target audience includes Plant Managers who oversee daily production output, Engineering Teams responsible for technical maintenance and process optimization, and C-suite Executives looking for high-level operational transparency and ROI data. Our core market is the Heavy Machinery and Automotive Manufacturing sectors, where high-precision assembly and complex supply chain coordination are critical for maintaining a competitive edge.\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/branding/chat",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"branding",
+						"chat"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Brand Q3",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"session_id\": \"a007\",\r\n    \"answer\": \"Our company is named **ForgeTrack Operations**, and our slogan is 'Precision in Motion, Power in Data.'\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/branding/chat",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"branding",
+						"chat"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Brand Q4",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"session_id\": \"a007\",\r\n    \"answer\": \"ForgeTrack Operations maintains a brand voice that is authoritative, rugged, and precision-oriented, and we are headquartered in Detroit, Michigan, having been founded in 2018.\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/branding/chat",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"branding",
+						"chat"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Brand Q5",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"session_id\": \"a007\",\r\n    \"answer\": \"You can reach us at **contact@forgetrackops.com**, by phone at **+1 (313) 555-0142**, or visit our website at **[www.forgetrackoperations.com](https://www.google.com/search?q=https://www.forgetrackoperations.com)**.\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/branding/chat",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"branding",
+						"chat"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Brand Q6",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"session_id\": \"a007\",\r\n    \"answer\": \"You can connect with us on LinkedIn at linkedin.com/company/forgetrack-operations and follow our updates on Twitter/X at @ForgeTrackOps.\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/branding/chat",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"branding",
+						"chat"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "SRS start",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"session_id\": \"a007\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/chat",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"chat"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "SRS Q1",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"session_id\": \"a007\",\r\n    \"answer\": \"ForgeTrack Operations is developing a high-precision **Factory Management System (FMS)** designed to optimize production for the heavy machinery and automotive manufacturing sectors. The project's main purpose is to increase throughput by 25%, reduce unplanned downtime via predictive maintenance, and provide real-time operational transparency. The primary users are **Plant Managers** for production oversight, **Engineering Teams** for technical maintenance, and **C-suite Executives** for ROI-focused data analysis.\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/chat",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"chat"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "SRS Q2",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"session_id\": \"a007\",\r\n    \"answer\": \"The user roles for ForgeTrack Operations include **Plant Managers** who oversee daily production output and workplace safety, **Engineering Teams** who manage technical maintenance and minimize equipment downtime via predictive data, and **C-suite Executives** who utilize operational transparency to analyze ROI and long-term strategic performance.\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/chat",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"chat"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "SRS Q3",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"session_id\": \"a007\",\r\n    \"answer\": \"The primary business goals for ForgeTrack Operations are to increase production throughput by 25% to maximize output, reduce unplanned equipment downtime through the implementation of data-driven predictive maintenance, and provide the C-suite with real-time operational transparency to accurately analyze ROI and strategic performance..\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/chat",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"chat"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "fallback question",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"session_id\": \"a007\",\r\n    \"answer\": \"The ForgeTrack Operations Factory Management System (FMS) replaces manual production scheduling with AI-driven real-time resource allocation, transitions maintenance from reactive fixes to IoT-powered predictive reliability to eliminate unplanned downtime, and upgrades manual quality checks to computer-vision-based digital inspections to ensure high-precision automotive standards and immutable audit trails.\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/chat",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"chat"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "SRS Q4",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"session_id\": \"a007\",\r\n    \"answer\": \"The ForgeTrack Operations Factory Management System (FMS) replaces manual, spreadsheet-based production scheduling with AI-driven real-time resource allocation to optimize throughput, transitions maintenance from reactive 'break-fi' cycles to IoT-powered predictive reliability that eliminates unplanned downtime, and upgrades manual, paper-logged quality checks to computer-vision-based digital inspections to ensure high-precision automotive standards and immutable audit trails.\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/chat",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"chat"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "SRS Q5",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"session_id\": \"a007\",\r\n    \"answer\": \"Plant Managers require real-time production control towers and supply chain tracking to optimize throughput, Engineering Teams need IoT-driven predictive maintenance dashboards and digital work order management to minimize downtime, and C-suite Executives utilize high-level ROI dashboards and operational transparency tools to monitor OEE and strategic performance.\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/chat",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"chat"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "SRS Q6",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"session_id\": \"a007\",\r\n    \"answer\": \"The ForgeTrack Operations Factory Management System (FMS) must provide several core system-wide features to ensure 'Precision in Motion' across the entire Detroit-based facility. Key functionalities include **Automated Production Scheduling** to replace manual spreadsheets with AI-driven resource allocation, **Real-Time Inventory Management** for high-precision tracking of automotive parts, **Digital Quality Control** using computer vision and digital logs to maintain immutable audit trails, **Predictive Maintenance Alerts** that utilize IoT sensor data to proactively prevent unplanned downtime, and **Centralized Operational Reporting** to provide the C-suite with high-level transparency and ROI-focused data analysis.\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/chat",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"chat"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "SRS Q7",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"session_id\": \"a007\",\r\n    \"answer\": \"The ForgeTrack Operations Factory Management System (FMS) will manage five core data entities to maintain 'Precision in Motion' across Detroit's automotive and heavy machinery manufacturing: **Machines** (storing Machine ID, status, and IoT sensor metrics like vibration and temperature), **Work Orders** (containing Order ID, assigned line, technician, and priority status), **Inventory Items** (tracking Part Number, quantity on hand, supplier details, and micron-level precision specs), **Maintenance Records** (logging Service Date, MTBF data, parts replaced, and predictive failure alerts), and **Quality Inspection Results** (recording Timestamp, inspection method, pass/fail status, and immutable digital signatures for audit trails).\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/chat",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"chat"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "SRS Q8",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"session_id\": \"a007\",\r\n    \"answer\": \"The ForgeTrack Operations Factory Management System (FMS) must integrate with several enterprise and industrial platforms to create a unified data ecosystem for Detroit’s automotive and heavy machinery sectors. The required integrations and data exchange types are as follows: Enterprise Resource Planning (ERP): The system must bi-directionally sync with ERPs like SAP or Microsoft Dynamics to receive Production Orders (order ID, quantities, deadlines) and return Real-Time Execution Feedback (actual units produced, scrap rates, and material consumption) to ensure accurate financial and inventory accounting. Manufacturing Execution System (MES): As a specialized FMS, it often bridges or replaces traditional MES functions, requiring deep integration with Shop Floor Control Systems to exchange sub-millisecond data on Machine Status and Work-in-Progress (WIP) tracking. Industrial IoT (IIoT) Platforms: Integration with platforms like AWS IoT, Azure IoT Hub, or Siemens MindSphere is essential for ingesting high-volume Sensor Telemetry (vibration, temperature, and hydraulic pressure) required for ForgeTrack’s predictive maintenance goals. Authentication & Identity Providers: To support secure, role-based access for Detroit's plant personnel and executives, the system must integrate with Active Directory (AD) or Single Sign-On (SSO) providers using OAuth2 or SAML protocols. Supply Chain & Logistics Tools: For 'Precision in Motion,' the FMS should exchange Inventory Levels and Shipment Status data with external warehouse management systems to enable Just-in-Time (JIT) material replenishment. Business Intelligence (BI) & Reporting Tools: The system should feed aggregated Operational Excellence (OEE) and MTBF data to tools like Power BI or Tableau to provide C-suite executives with high-level ROI visualizations.\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/chat",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"chat"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "SRS Q9",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"session_id\": \"a007\",\r\n    \"answer\": \"The ForgeTrack Operations Factory Management System must meet high security and compliance standards, including ISO 27001 for information security management, IEC 62443 for industrial automation and control systems, and IATF 16949 for automotive quality standards, while ensuring data protection through AES-256 encryption at rest, TLS 1.3 for data in transit, and robust Multi-Factor Authentication (MFA) with Role-Based Access Control (RBAC) to protect sensitive operational data.\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/chat",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"chat"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "SRS Q10",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"session_id\": \"a007\",\r\n    \"answer\": \"To fulfill ForgeTrack Operations' specific business goals of a 25% increase in throughput and a total elimination of unplanned downtime in the Detroit automotive and heavy machinery sector, the Factory Management System (FMS) must meet the following performance and scalability requirements:* **Real-Time Latency:** To support 'Precision in Motion,' dashboard latency for live production line monitoring must be sub-second (typically <500ms), while critical IoT-driven predictive maintenance alerts must be delivered in near-real-time (<100ms) to prevent equipment failure. * **Data Ingestion Rates:** The system must handle high-velocity telemetry from thousands of concurrent IoT sensors (vibration, temperature, and pressure) across multiple production lines, with an ingestion capacity capable of processing thousands of messages per second without data loss. * **System Throughput:** The FMS must maintain a 25% higher production scheduling throughput compared to existing manual systems, supporting high-volume transaction processing for automated work orders and real-time inventory updates. * **Concurrent User Load:** The architecture must support seamless, simultaneous access for all Detroit-based personnel—including Plant Managers, Engineering Teams, and C-suite Executives—ensuring no performance degradation during peak operational shifts. * **Scalability:** The system must be horizontally scalable to accommodate ForgeTrack’s future growth, allowing for the addition of new production lines or machinery without requiring a complete system overhaul.\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/chat",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"chat"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "SRS Q11",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"session_id\": \"a007\",\r\n    \"answer\": \"The ForgeTrack Operations Factory Management System (FMS) is a high-precision platform designed for the Detroit-based automotive and heavy machinery sectors to increase production throughput by 25%, eliminate unplanned downtime via IoT-powered predictive maintenance, and provide C-suite executives with real-time ROI and operational transparency. The system serves three primary roles: Plant Managers who oversee daily output and safety, Engineering Teams who manage technical maintenance and minimize equipment downtime, and C-suite Executives who analyze strategic performance data. Key system-wide features include AI-driven automated production scheduling, real-time inventory management for precision parts, and digital quality control with computer-vision-based audit trails. To support these functions, the FMS manages critical data entities such as Machine IDs with telemetry metrics, Work Orders, high-precision Inventory Specs, Maintenance Records for MTBF tracking, and digital Quality Inspection results. Integration requirements include bi-directional data exchange with ERP systems for production orders, IIoT platforms for sensor ingestion, and BI tools for executive reporting, all while meeting strict industry standards like ISO 27001, IEC 62443, and IATF 16949 through AES-256 encryption and multi-factor authentication. Performance is defined by sub-second latency for live dashboards and high-velocity data ingestion from thousands of sensors, while project constraints include the need for phased deployment to avoid production disruption and the requirement for intuitive interfaces to support the local Detroit workforce.\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/chat",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"chat"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "SRS Q12",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"session_id\": \"a007\",\r\n    \"answer\": \"The ForgeTrack Operations Factory Management System (FMS) is a web-based application with an approved maximum budget of USD 2.5 million over a three-year period, covering web application development, third-party software licences, cloud infrastructure, security compliance, and ongoing operational and maintenance costs; the system must be accessible through modern web browsers and follow a hybrid deployment model where latency-sensitive machine and IoT data ingestion is handled via on-premise web services, while analytics, dashboards, and reporting modules are hosted on a secure cloud platform, with the operating environment restricted to Linux-based servers, containerized deployment using Docker and Kubernetes, and cloud services provided by AWS or Microsoft Azure, with Azure preferred due to existing enterprise integration; the FMS must integrate with ERP, MES, IoT platforms, and BI tools using secure web APIs and comply with ISO 27001, IEC 62443, and IATF 16949 standards, including AES-256 encryption at rest, TLS 1.3 for data in transit, and role-based access control with multi-factor authentication; deployment shall be executed in phased milestones consisting of initial web platform setup and IoT data integration, followed by web-based production scheduling and inventory modules, activation of predictive maintenance features, and final rollout of executive dashboards, with the complete system targeted for full production go-live within 12 months without disruption to active manufacturing operations.\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/chat",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"chat"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "SRS Q13",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"session_id\": \"a007\",\r\n    \"answer\": \"For the ForgeTrack Operations Factory Management System to fully realize its 'Precision in Motion' vision and ensure the long-term success of our Detroit facilities, we must capture several additional operational and technical considerations: 1. Training & Workforce Adoption Intuitive Interface Design: Given the potential shortage of tech-savvy operators, the system must feature highly intuitive, 'industrial-grade' user interfaces (UIs) that can be operated via ruggedized tablets or touchscreens. Localized Training Programs: We require a dedicated training module or 'Simulation Mode' to upskill our Detroit workforce without impacting live production data. 2. Support & Maintenance Contracts 24/7 Industrial Support: Since our heavy machinery lines often run 24/7, we require a Priority-One Support Agreement with a guaranteed response time of under 15 minutes for any system-wide outages. Predictive System Health: The FMS should monitor its own 'health' (e.g., server load, gateway connectivity) to prevent software-driven downtime, mirroring the predictive maintenance it provides for the machines. 3. Data Retention & Privacy Policies 7-Year Audit Trail: To comply with IATF 16949 and automotive safety standards, all quality inspection and maintenance records must be retained in an immutable state for at least 7 years. Data Sovereignty: All sensitive production data and worker biometric/safety logs must remain within regional data centers to satisfy local privacy requirements. 4. Disaster Recovery & Business Continuity Edge Autonomy (Local Failover): In the event of a cloud or internet outage, the on-premise edge controllers must be capable of running independent production scheduling and local data logging for up to 48 hours without data loss. Point-in-Time Recovery: We require a disaster recovery plan that allows the system to be fully restored to a known-good state within 2 hours in the event of a cyber-incident or catastrophic hardware failure. 5. Worker Safety & Environmental Monitoring Hazardous Condition Alerts: The system should integrate environmental sensors (e.g., air quality, noise levels, heat) and wearable IoT data to automatically trigger safety protocols or emergency stops if worker health is at risk.\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/chat",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"chat"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "SRS Q14",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"session_id\": \"a007\",\r\n    \"answer\": \"ForgeTrack Operations Factory Management System must also adhere to ISO 50001 for energy sustainability and NIST SP 800-82 for industrial cybersecurity, utilize an API-first modular architecture supporting OPC UA and MQTT for future Industry 4.0 scalability, and implement a zero-trust security model with edge-to-cloud data parity to ensure immutable audit trails and global multi-site synchronization.\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/chat",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"chat"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "SRS Q15",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"session_id\": \"a007\",\r\n    \"answer\": \"The ForgeTrack Operations Factory Management System must adhere to ISO 26262 for functional safety and ASPICE for software lifecycle integrity, provide real-time Tier-N supply chain visibility to mitigate parts shortages, ensure compatibility with legacy Modbus/RS-232 industrial protocols, and include 2026-mandated ESG modules for per-unit carbon tracking and waste reduction while maintaining a $1.2M budget and a phased hybrid-cloud deployment strategy.\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/chat",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"chat"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "SRS Q16",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"session_id\": \"a007\",\r\n    \"answer\": \"The ForgeTrack Operations FMS will be deployed in a phased 2026 rollout—starting with edge connectivity in Q1 and ending with a full Q4 go-live—supported by a workforce upskilling program for 50% of Detroit staff, while adhering to the August 2026 EU AI Act high-risk requirements and 2027 Battery Passport data prep within a hybrid-cloud architecture that ensures 48-hour offline autonomy and regional data residency.\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/chat",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"chat"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "SRS Q17",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"session_id\": \"a007\",\r\n    \"answer\": \"The ForgeTrack Operations FMS requires 48-hour edge autonomy and US-regional data residency for its Detroit facilities, a 24/7 Digital Response Team with a 50% supervisor upskilling mandate, and must automate compliance for the 2026 OSHA Heat Illness standard and EPA 10.3% GHG reduction targets while operating within a $1.2M budget.\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/chat",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"chat"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Estimate",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"session_id\": \"a007\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/estimate",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"estimate"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Prompt-gen",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"session_id\": \"a007\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/generate-prompts",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"generate-prompts"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
