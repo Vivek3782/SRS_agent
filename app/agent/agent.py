@@ -5,7 +5,7 @@ from app.agent.prompt import SYSTEM_PROMPT
 from app.agent.output_parser import AgentOutput
 from app.agent.intent_handler import consume_intent
 from app.config import settings
-
+from fastapi import HTTPException
 
 class RequirementAgent:
     def __init__(self):
@@ -56,7 +56,10 @@ class RequirementAgent:
             HumanMessage(content=str(user_payload))
         ]
 
-        response = self.llm.invoke(messages)
+        try:
+            response = self.llm.invoke(messages)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
 
         # OpenRouter returns JSON string → strict parse
         parsed = AgentOutput.model_validate_json(response.content)

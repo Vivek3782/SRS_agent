@@ -76,18 +76,21 @@ def chat(request: ChatRequest, current_user: User = Depends(get_current_user)):
     # ------------------------------------
 
     # 2️ Run agent
-    agent_result = agent.run(
-        phase=session_state.phase,
-        context=session_state.context,
-        answer=normalized_answer,
-        pending_intent=(
-            session_state.pending_intent.model_dump()
-            if session_state.pending_intent
-            else None
-        ),
-        additional_questions_asked=session_state.additional_questions_asked,
-        last_question=session_state.last_question.text if session_state.last_question else None
-    )
+    try:
+        agent_result = agent.run(
+            phase=session_state.phase,
+            context=session_state.context,
+            answer=normalized_answer,
+            pending_intent=(
+                session_state.pending_intent.model_dump()
+                if session_state.pending_intent
+                else None
+            ),
+            additional_questions_asked=session_state.additional_questions_asked,
+            last_question=session_state.last_question.text if session_state.last_question else None
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
     # 3️ ASK → store updated state
     if agent_result.status == "ASK":

@@ -89,7 +89,10 @@ class BrandingAgent:
         ]
 
         # 3. Invoke AI
-        response = self.llm.invoke(messages)
+        try:
+            response = self.llm.invoke(messages)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
 
         # 4. Parse JSON Output
         return BrandingAgentOutput.model_validate_json(response.content)

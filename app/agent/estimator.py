@@ -77,8 +77,12 @@ class PageEstimationAgent:
             {srs_str}
             """)
         ]
+    
+        try:
+            response = self.llm.invoke(messages)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
 
-        response = self.llm.invoke(messages)
         content = response.content.strip()
 
         # 3. Cleanup String (Markdown & Commas)

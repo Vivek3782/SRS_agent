@@ -29,12 +29,9 @@ def download_excel(session_id: str, current_user: User = Depends(get_current_use
     """
     Download the latest Excel log for the given session.
     """
-    try:
-        current_user= User.objects.get(id=current_user.id)
-        if current_user.is_superuser==False:
-            raise HTTPException(status_code=403, detail="User is not authorized to download Excel")
-    except User.DoesNotExist:
-        raise HTTPException(status_code=404, detail="User not found")
+    if not current_user.is_superuser:
+        raise HTTPException(
+            status_code=403, detail="User is not authorized to download Excel")
     file_path = get_latest_file(EXPORT_XLSX_DIR, session_id, ".xlsx")
 
     if not file_path:
@@ -53,12 +50,9 @@ def download_json(session_id: str, current_user: User = Depends(get_current_user
     """
     Download the latest JSON requirements for the given session.
     """
-    try:
-        current_user= User.objects.get(id=current_user.id)
-        if current_user.is_superuser==False:
-            raise HTTPException(status_code=403, detail="User is not authorized to download JSON")
-    except User.DoesNotExist:
-        raise HTTPException(status_code=404, detail="User not found")
+    if not current_user.is_superuser:
+        raise HTTPException(
+            status_code=403, detail="User is not authorized to download JSON")
     file_path = get_latest_file(EXPORT_JSON_DIR, session_id, ".json")
 
     if not file_path:
