@@ -1,4 +1,5 @@
 from pathlib import Path
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -16,6 +17,13 @@ class Settings(BaseSettings):
     redis_port: int
     redis_db: int
     redis_ttl_seconds: int | None = None
+
+    @field_validator("redis_ttl_seconds", mode="before")
+    @classmethod
+    def parse_none_string(cls, v):
+        if isinstance(v, str) and v.lower() == "none":
+            return None
+        return v
 
     # JWT Auth
     SECRET_KEY: str

@@ -40,21 +40,30 @@ def get_token_from_header(authorization: Optional[str] = Header(None)) -> str:
 
 
 async def get_current_user(token: str = Depends(get_token_from_header), db: Session = Depends(get_db)) -> User:
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
+    try:
+        payload = auth_service.verify_token(token, None)
+        username: str = payload.get("sub")
+        if username is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token missing subject",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
 
-    payload = auth_service.verify_token(token, credentials_exception)
-    username: str = payload.get("sub")
-
-    if username is None:
-        raise credentials_exception
-
-    token_data = TokenData(username=username)
-
-    user = user_service.get_user_by_email(db, email=token_data.username)
-    if user is None:
-        raise credentials_exception
-    return user
+        token_data = TokenData(username=username)
+        user = user_service.get_user_by_email(db, email=token_data.username)
+        if user is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User not found",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        return user
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Token validation failed: {str(e)}",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
