@@ -4,6 +4,7 @@ from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage, HumanMessage
 from app.config import settings
 from app.schemas.estimation import SiteMapResponse
+from fastapi import HTTPException
 
 ESTIMATION_SYSTEM_PROMPT = """
 You are an expert UX Architect.

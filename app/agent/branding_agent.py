@@ -4,6 +4,7 @@ from app.config import settings
 from app.schemas.branding import CompanyProfile
 from pydantic import BaseModel, Field
 from typing import Optional
+from fastapi import HTTPException
 
 BRANDING_SYSTEM_PROMPT = """
 You are an expert **Brand Strategist and UX Consultant**.
