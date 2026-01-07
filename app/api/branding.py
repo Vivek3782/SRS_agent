@@ -1,4 +1,5 @@
-from fastapi import APIRouter, HTTPException, Depends, Form, File, UploadFile, Request
+from fastapi import APIRouter, HTTPException, Depends, Form, File, Request
+from starlette.datastructures import UploadFile
 from pydantic import BaseModel
 import glob
 import os
@@ -46,8 +47,12 @@ async def chat_branding(
 
     # 2. Identify files dynamically
     uploaded_files = []
+    print(f"DEBUG: Processing form with {len(form)} items")
     for key, value in form.items():
-        if isinstance(value, UploadFile):
+        is_file = isinstance(value, UploadFile)
+        print(
+            f"DEBUG: Key='{key}', Type={type(value)}, IsUploadFile={is_file}")
+        if is_file:
             uploaded_files.append((key, value))
 
     # Check if already started (running) but no answer/files provided

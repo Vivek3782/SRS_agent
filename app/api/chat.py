@@ -19,7 +19,7 @@ import glob
 router = APIRouter()
 agent = RequirementAgent()
 
-
+#FIXME: convert ChatRequest to Request for form-data input
 @router.post("/chat", response_model=AskResponse | CompleteResponse)
 def chat(request: ChatRequest, current_user: User = Depends(get_current_user)):
 
