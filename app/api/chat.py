@@ -23,11 +23,11 @@ agent = RequirementAgent()
 @router.post("/chat", response_model=AskResponse | CompleteResponse)
 def chat(request: ChatRequest, current_user: User = Depends(get_current_user)):
 
-    search_pattern = settings.EXPORT_XLSX_DIR / \
-        f"session_{request.session_id}_*.xlsx"
+    search_pattern = settings.EXPORT_JSON_DIR / \
+        f"requirements_{request.session_id}_*.json"
     if glob.glob(str(search_pattern)):
         raise HTTPException(
-            status_code=400, detail="this session is already completed")
+            status_code=400, detail="this project requirements are already completed")
 
     # 1️ Load existing session
     stored_state = redis_service.get_session(request.session_id)

@@ -10,7 +10,7 @@ ESTIMATION_SYSTEM_PROMPT = """
 You are an expert UX Architect.
 You will be provided with two data sources:
 1. **SRS (Software Requirements)**
-2. **BRANDING PROFILE**
+2. **BRANDING PROFILE** (Includes mission, voice, reference URLs, and color schemes)
 
 **YOUR TASK:**
 Generate a comprehensive Sitemap JSON.
@@ -39,6 +39,7 @@ You must return a SINGLE JSON object with exactly two keys: "business_type" and 
 4. **Markdown:** Do NOT use markdown formatting.
 5. **Complexity Estimation:** For each page, estimate implementation complexity (Low, Medium, High) based on the number of features.
 6. **Notes:** Add brief tech notes (e.g., "Requires Auth Middleware").
+7. **Reference Alignment:** If the Branding Profile contains reference URLs (Agency or External), analyze them to infer required pages, specialized layouts, or specific functionality mentioned in those references.
 """
 
 
@@ -78,7 +79,7 @@ class PageEstimationAgent:
             {srs_str}
             """)
         ]
-    
+
         try:
             response = self.llm.invoke(messages)
         except Exception as e:
@@ -107,7 +108,7 @@ class PageEstimationAgent:
 
         # Case B: Missing "business_type"
         if "business_type" not in data:
-            data["business_type"] = "Standard Web Application"  
+            data["business_type"] = "Standard Web Application"
 
         # Case C: If "pages" is missing but keys look like a list
         if "pages" not in data and isinstance(data, list):

@@ -28,6 +28,12 @@ class CompanyProfile(BaseModel):
     # e.g., {"linkedin": "url", "twitter": "handle"}
     social_media: Optional[Dict[str, str]] = None
 
+    # Optional UI/UX References
+    agency_refresh_urls: Optional[List[str]] = None
+    external_reference_urls: Optional[List[str]] = None
+    color_scheme: Optional[str] = None
+    visual_references: Optional[List[str]] = None
+
 
 class BrandingTurn(BaseModel):
     question: str

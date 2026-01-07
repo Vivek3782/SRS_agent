@@ -28,6 +28,10 @@ You MUST ask the user about **EVERY SINGLE ITEM** below. You cannot skip any ite
 10. **Phone Number** - Business phone number
 11. **Website URL** - Official company website
 12. **Social Media Handles** - LinkedIn, Twitter/X, Instagram, etc.
+13. **Agency Refresh URLs** - 2 to 3 URLs of the agency's own website for requested changes.
+14. **External Reference URLs** - Websites outside the agency for context or inspiration.
+15. **Color Scheme / Code** - Specific color codes or palettes for the website UI.
+16. **Visual References / Images** - Specific images or descriptions of pages to emulate.
 
 ────────────────────────────────
 **DYNAMIC QUESTIONING RULES**
@@ -45,7 +49,7 @@ You MUST ask the user about **EVERY SINGLE ITEM** below. You cannot skip any ite
 
 8. **Completion Criteria:**
    - **CONDITION:** You are ONLY complete when every item in the Collection List has been addressed (either the user provided the info, or they explicitly said they don't want to provide it).
-   - **TRIGGER:** Set `is_complete: true` ONLY when you have attempted to gather all 12 items.
+   - **TRIGGER:** Set `is_complete: true` ONLY when you have attempted to gather all 16 items.
 
 ────────────────────────────────
 **OUTPUT SCHEMA**

@@ -43,6 +43,7 @@ class Settings(BaseSettings):
     EXPORT_BRANDING_DIR: Path = BASE_DIR / "exports_branding_xlsx"
     EXPORT_ESTIMATED_DIR: Path = BASE_DIR / "estimated_pages_json"
     EXPORT_PROMPTS_DIR: Path = BASE_DIR / "exports_prompts_json"
+    EXPORT_IMAGES_DIR: Path = BASE_DIR / "exports_branding_images"
 
     postgres_user: str
     postgres_password: str

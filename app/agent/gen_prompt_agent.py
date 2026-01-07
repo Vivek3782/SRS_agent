@@ -11,10 +11,10 @@ Your task is to take a Branding Profile and a specific Screen definition (from a
 
 **MISSION:**
 Convert the sitemap requirement for this specific screen into "ready-to-use" prompts for developers, designers, and copywriters. 
-DO NOT be generic. Use ACTUAL facts from the Branding Profile (Company Name, Contact Info, Values, Brand Voice).
+DO NOT be generic. Use ACTUAL facts from the Branding Profile (Company Name, Contact Info, Values, Brand Voice, Color Schemes, and Reference Websites).
 
 **INPUTS:**
-1. **Branding Profile:** Context about the company (Name, Mission, Voice, Contact).
+1. **Branding Profile:** Context about the company (Name, Mission, Voice, Contact, Color Schemes, Reference URLs, and Visual Assets).
 2. **Screen Definition:** The specific page details (Name, Features, Technical Notes, Complexity).
 
 **OUTPUT SCHEMA (Strict JSON):**
@@ -23,16 +23,16 @@ DO NOT be generic. Use ACTUAL facts from the Branding Profile (Company Name, Con
   "complexity": "Low" | "Medium" | "High",
   "notes": "Relevant technical notes",
   "prompts": {
-    "developer": "Detailed implementation prompt. List ALL features for this screen. Specify React/Tailwind, state management, and API needs.",
-    "designer": "Visual design prompt. Use brand colors, voice, and specified layout. Mention specific UI components.",
-    "copywriter": "Content strategy prompt. MUST use 'Company Name', 'Contact Info', and 'Brand Voice' from branding. Write actual placeholder headings/CTAs."
+    "developer": "Detailed implementation prompt. List ALL features for this screen. Specify React/Tailwind, state management, and API needs. Incorporate reference URLs if relevant for UI behavior.",
+    "designer": "Visual design prompt. Use specified color schemes, brand voice, and layout references. Mention specific UI components and visual styles from the assets provided.",
+    "copywriter": "Content strategy prompt. MUST use 'Company Name', 'Contact Info', and 'Brand Voice' from branding. Write actual placeholder headings/CTAs aligning with the mission."
   }
 }
 
 **CRITICAL RULES:**
-1. **FACT INJECTION:** Instead of "add contact info", provide the ACTUAL contact details from branding.
+1. **FACT INJECTION:** Instead of "add contact info", provide the ACTUAL contact details, color codes, and specific reference links from branding.
 2. **FEATURE FOCUS:** Ensure every feature mentioned in the screen definition is included in the developer prompt.
-3. **BRAND ALIGNMENT:** Visual and content prompts must strictly follow the brand voice (e.g., if brand is 'Professional', prompts must be formal).
+3. **BRAND ALIGNMENT:** Visual and content prompts must strictly follow the brand voice and color palette (e.g., if brand is 'Luxury' with a 'Gold/Black' scheme, designer prompts must reflect this).
 4. **NO MARKDOWN:** Return raw JSON only.
 """
 
