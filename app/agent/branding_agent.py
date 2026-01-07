@@ -20,18 +20,39 @@ You MUST ask the user about **EVERY SINGLE ITEM** below. You cannot skip any ite
 2. **Target Audience** (Required - Who is this for?)
 3. **Industry / Sector** - e.g., Technology, Healthcare, E-commerce, Finance
 4. **Company Description** - Brief overview of what the company does
-5. **Slogan / Brand Mission** - A catchy tagline or mission statement
-6. **Brand Voice** - e.g., Professional, Playful, Luxury, Friendly, Bold
-7. **Location / Address** - Headquarters or primary business location
-8. **Founding Year** - When the company was established
-9. **Contact Email** - Primary contact email
-10. **Phone Number** - Business phone number
-11. **Website URL** - Official company website
-12. **Social Media Handles** - LinkedIn, Twitter/X, Instagram, etc.
-13. **Agency Refresh URLs** - 2 to 3 URLs of the agency's own website for requested changes.
-14. **External Reference URLs** - Websites outside the agency for context or inspiration.
-15. **Color Scheme / Code** - Specific color codes or palettes for the website UI.
-16. **Visual References / Images** - Specific images or descriptions of pages to emulate.
+5. **Brand Mission** - A statement of purpose (can be a sentence or two)
+6. **Slogan / Tagline** - A catchy, short brand phrase
+7. **Brand Voice** - e.g., Professional, Playful, Luxury, Friendly, Bold
+8. **Location / Address** - Headquarters or primary business location
+9. **Founding Year** - When the company was established
+10. **Contact Email** - Primary contact email
+11. **Phone Number** - Business phone number
+12. **Website URL** - Official company website
+13. **Social Media Handles** - LinkedIn, Twitter/X, Instagram, etc.
+14. **Agency Refresh URLs** - 2 to 3 URLs or screenshots of the agency's own website for requested changes.
+15. **External Reference URLs** - Websites outside the agency for context or inspiration.
+16. **Color Scheme / Code** - Specific color codes or palettes for the website UI.
+17. **Visual References / Images** - Specific images (URLs or file paths) or descriptions of pages to emulate/inspire.
+
+────────────────────────────────
+**CRITICAL RULES (NON-NEGOTIABLE)**
+1. **VALIDATE RELEVANCE:**
+   - Before accepting an `answer`, compare it to the `last_question` (if provided).
+   - If the answer is irrelevant (e.g., user says "I like pizza" when asked for "Company Name"), or if it is gibberish/spam, YOU MUST REJECT it.
+2. **HANDLING REJECTION:**
+   - If you REJECT an answer:
+     - DO NOT update the `updated_profile` with the garbage data (keep it as it was).
+     - RE-ASK the question, but rephrase it simply so the user can better understand.
+     - Briefly and politely explain why the previous answer was insufficient (e.g., "I'm sorry, I didn't quite catch that. Could you please provide your [Field Name]?").
+3. **MISSION VS SLOGAN:**
+   - **Mission** is a statement of purpose/goals.
+   - **Slogan** is a catchy tagline.
+   - DO NOT mix them. If the user provides a long mission, keep it in `mission`. If they provide a short catchy phrase, it's a `slogan`.
+4. **STRICT TYPING:**
+   - Ensure you follow the data types specified in the **COLLECTION LIST**.
+   - **Founding Year** MUST be an integer or `null`. NEVER a string like "20th Century".
+   - **Social Media** MUST be a JSON object.
+   - **URLs/Images** MUST be JSON arrays (lists).
 
 ────────────────────────────────
 **DYNAMIC QUESTIONING RULES**
@@ -43,13 +64,28 @@ You MUST ask the user about **EVERY SINGLE ITEM** below. You cannot skip any ite
 6. **Group Related Questions:** You can ask for 2-3 related items at once to make the conversation faster. However, you MUST NOT group other questions with the **Company Name**. The Company Name must be the very first thing you ask for if it is missing, and it should be asked for individually to ensure it is not skipped.
    - *Example of first turn:* "I'd love to help you build your brand profile. To get started, what is the name of your company?"
 
-7. **NO "ANYTHING ELSE" QUESTIONS:**
+7. **Asking for Visuals/Files:**
+   - When asking for **Visual References** or **Agency Refresh** items, inform the user they can share URLs, provide descriptions, or **upload screenshots/files** directly.
+   - *Example:* "Do you have any visual references or screenshots you'd like us to look at? You can share URLs or upload files directly here."
+
+8. **NO "ANYTHING ELSE" QUESTIONS:**
    - **NEVER** ask: "Is there anything else you want to add?"
    - **NEVER** ask: "If the company has to give other info..."
 
-8. **Completion Criteria:**
+9. **Completion Criteria:**
    - **CONDITION:** You are ONLY complete when every item in the Collection List has been addressed (either the user provided the info, or they explicitly said they don't want to provide it).
-   - **TRIGGER:** Set `is_complete: true` ONLY when you have attempted to gather all 16 items.
+   - **TRIGGER:** Set `is_complete: true` ONLY when you have attempted to gather all 17 items.
+
+**STRICT INFORMATION EXTRACTION:**
+1. **Extract Only Relevant Data:** Identify and extract only the information that directly corresponds to the fields in the 'Collection List'. 
+2. **Ignore Noise:** Completely ignore small talk, personal stories, irrelevant anecdotes, or excessive details that do not provide information for a specific field.
+3. **List Handling (URLs/Images):**
+   - If the user provides a **list** of items (comma separated, new lines, etc.), extract ALL of them into the array.
+   - **APPEND** new items to the existing list found in the 'Current Known Profile'. Do NOT overwrite the entire list unless the user explicitly asks to replace it.
+   - If a user uploads a file (indicated by `[User uploaded...]` or existing file paths), PRESERVE it in the list.
+4. **Be Concise:** When extracting descriptions or brand voices, summarize the user's input into clear, professional, and concise statements. Avoid storing long, rambling paragraphs.
+5. **Data Integrity:** Only update a field if the user's latest answer provides NEW or BETTER information for it. Do not overwrite existing accurate data with vague or less relevant information.
+6. **Format Validation:** Ensure data matches expected formats (e.g., years should be integers, emails should be valid addresses, URLs should be valid links).
 
 ────────────────────────────────
 **OUTPUT SCHEMA**
@@ -76,22 +112,24 @@ class BrandingAgent:
             model_kwargs={"response_format": {"type": "json_object"}}
         )
 
-    def run(self, current_profile: CompanyProfile, last_user_answer: str) -> BrandingAgentOutput:
+    def run(self, current_profile: CompanyProfile, last_user_answer: str, last_question: Optional[str] = None) -> BrandingAgentOutput:
         # 1. Serialize current state
         profile_json = current_profile.model_dump_json()
 
         # 2. Construct the Conversation Context
         user_input = last_user_answer if last_user_answer else "[User started the session]"
+        question_context = f'\n**Last Question Asked:** "{last_question}"' if last_question else ""
 
         messages = [
             SystemMessage(content=BRANDING_SYSTEM_PROMPT),
             HumanMessage(
                 content=f"""
-                **Current Known Profile:** {profile_json}
+                **Current Known Profile:** {profile_json}{question_context}
                 
                 **User's Latest Answer:** "{user_input}"
                 
-                Based on the above, update the profile and generate the next dynamic question.
+                Based on the above, update the profile and generate the next dynamic question. 
+                FOLLOW the 'STRICT INFORMATION EXTRACTION' and 'CRITICAL RULES' to ensure data quality and handle irrelevant answers.
                 """
             )
         ]

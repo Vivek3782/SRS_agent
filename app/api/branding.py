@@ -8,7 +8,7 @@ from app.services.branding_service import branding_service
 from app.services.export_service import save_branding_files
 from app.agent.branding_agent import BrandingAgent
 from app.schemas.branding import BrandingResponse, BrandingAskResponse, BrandingCompleteResponse, BrandingTurn
-from typing import Optional, Any
+from typing import Optional, Any, List
 from app.models.user import User
 from app.api.deps import get_current_user
 
@@ -25,7 +25,7 @@ class BrandingRequest(BaseModel):
 async def chat_branding(
     session_id: str = Form(...),
     answer: Optional[str] = Form(None),
-    file: Optional[UploadFile] = File(None),
+    files: Optional[List[UploadFile]] = File(None),
     current_user: User = Depends(get_current_user)
 ):
     # 0. Check if session already has a final requirements export
@@ -38,41 +38,46 @@ async def chat_branding(
     # 1. Load State
     state = branding_service.get_state(session_id)
 
-    # 2. Check if already started (running) but no answer/file provided
-    is_empty_input = (answer is None or not answer.strip()) and file is None
+    # 2. Check if already started (running) but no answer/files provided
+    is_empty_input = (answer is None or not answer.strip()
+                      ) and (files is None or len(files) == 0)
     if state.last_question and is_empty_input:
         raise HTTPException(
             status_code=400, detail=f"session {session_id} is already started with last question {state.last_question}")
 
-    # 3. Handle File Upload
-    if file:
-        file_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        safe_filename = "".join(
-            [c if c.isalnum() or c in "._-" else "_" for c in file.filename])
-        filename = f"{file_timestamp}_{safe_filename}"
+    # 3. Handle File Uploads
+    if files:
+        uploaded_info = []
+        for file in files:
+            file_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+            safe_filename = "".join(
+                [c if c.isalnum() or c in "._-" else "_" for c in file.filename])
+            filename = f"{file_timestamp}_{safe_filename}"
 
-        session_upload_dir = settings.EXPORT_IMAGES_DIR / session_id
-        os.makedirs(session_upload_dir, exist_ok=True)
-        file_path = session_upload_dir / filename
+            session_upload_dir = settings.EXPORT_IMAGES_DIR / session_id
+            os.makedirs(session_upload_dir, exist_ok=True)
+            file_path = session_upload_dir / filename
 
-        # Save the file
-        content = await file.read()
-        with open(file_path, "wb") as f:
-            f.write(content)
+            # Save the file
+            content = await file.read()
+            with open(file_path, "wb") as f:
+                f.write(content)
 
-        # Update Profile
-        if state.profile.visual_references is None:
-            state.profile.visual_references = []
+            # Update Profile
+            if state.profile.visual_references is None:
+                state.profile.visual_references = []
 
-        # Store relative path for portability
-        rel_path = f"exports_branding_images/{session_id}/{filename}"
-        state.profile.visual_references.append(rel_path)
+            # Store relative path for portability
+            rel_path = f"exports_branding_images/{session_id}/{filename}"
+            state.profile.visual_references.append(rel_path)
+            uploaded_info.append(file.filename)
 
         # Inject info into the answer for the LLM
+        upload_msg = f"[User uploaded {len(files)} images: {', '.join(uploaded_info)}]"
         if not answer:
-            answer = f"[User uploaded an image: {file.filename}]"
+            answer = upload_msg
         else:
-            answer = f"{answer} [User also uploaded image: {file.filename}]"
+            answer = f"{answer} {upload_msg}"
 
     # 4. Check if already complete
     if state.is_complete:
@@ -83,7 +88,7 @@ async def chat_branding(
         )
 
     # 5. Run Agent
-    agent_result = agent.run(state.profile, answer)
+    agent_result = agent.run(state.profile, answer, state.last_question)
 
     # 6. Update Profile from Agent Result
     state.profile = agent_result.updated_profile

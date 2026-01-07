@@ -10,6 +10,7 @@ class CompanyProfile(BaseModel):
     target_audience: Optional[str] = None
 
     # Brand Identity
+    mission: Optional[str] = None
     slogan: Optional[str] = None
     brand_voice: Optional[str] = None
     industry: Optional[str] = None
@@ -31,7 +32,7 @@ class CompanyProfile(BaseModel):
     # Optional UI/UX References
     agency_refresh_urls: Optional[List[str]] = None
     external_reference_urls: Optional[List[str]] = None
-    color_scheme: Optional[str] = None
+    color_scheme: Optional[Union[str, Any]] = None
     visual_references: Optional[List[str]] = None
 
 
