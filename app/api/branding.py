@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends, Form, File, UploadFile
+from fastapi import APIRouter, HTTPException, Depends, Form, File, UploadFile, Request
 from pydantic import BaseModel
 import glob
 import os
@@ -23,11 +23,17 @@ class BrandingRequest(BaseModel):
 
 @router.post("/branding/chat", response_model=BrandingResponse)
 async def chat_branding(
-    session_id: str = Form(...),
-    answer: Optional[str] = Form(None),
-    files: Optional[List[UploadFile]] = File(None),
+    request: Request,
     current_user: User = Depends(get_current_user)
 ):
+    form = await request.form()
+
+    session_id = form.get("session_id")
+    if not session_id:
+        raise HTTPException(status_code=400, detail="session_id is required")
+
+    answer = form.get("answer")
+
     # 0. Check if session already has a final requirements export
     search_pattern = settings.EXPORT_JSON_DIR / \
         f"requirements_{session_id}_*.json"
@@ -38,21 +44,35 @@ async def chat_branding(
     # 1. Load State
     state = branding_service.get_state(session_id)
 
-    # 2. Check if already started (running) but no answer/files provided
-    is_empty_input = (answer is None or not answer.strip()
-                      ) and (files is None or len(files) == 0)
+    # 2. Identify files dynamically
+    uploaded_files = []
+    for key, value in form.items():
+        if isinstance(value, UploadFile):
+            uploaded_files.append((key, value))
+
+    # Check if already started (running) but no answer/files provided
+    is_empty_input = (not answer or not str(
+        answer).strip()) and not uploaded_files
     if state.last_question and is_empty_input:
         raise HTTPException(
             status_code=400, detail=f"session {session_id} is already started with last question {state.last_question}")
 
-    # 3. Handle File Uploads
-    if files:
+    # 3. Handle Dynamic File Uploads
+    if uploaded_files:
         uploaded_info = []
-        for file in files:
-            file_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
-            safe_filename = "".join(
-                [c if c.isalnum() or c in "._-" else "_" for c in file.filename])
-            filename = f"{file_timestamp}_{safe_filename}"
+        for key, file in uploaded_files:
+            # Generate filename using the KEY (e.g., home, dashboard)
+            file_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+            # Extract extension
+            orig_filename = file.filename or ""
+            ext = os.path.splitext(orig_filename)[1]
+            if not ext:
+                ext = ""  # or default to .png if needed
+
+            safe_key = "".join(
+                [c if c.isalnum() or c in "._-" else "_" for c in key])
+            filename = f"{file_timestamp}_{safe_key}{ext}"
 
             session_upload_dir = settings.EXPORT_IMAGES_DIR / session_id
             os.makedirs(session_upload_dir, exist_ok=True)
@@ -70,10 +90,12 @@ async def chat_branding(
             # Store relative path for portability
             rel_path = f"exports_branding_images/{session_id}/{filename}"
             state.profile.visual_references.append(rel_path)
-            uploaded_info.append(file.filename)
+
+            # Log the semantic name for the Agent
+            uploaded_info.append(f"{key}{ext}")
 
         # Inject info into the answer for the LLM
-        upload_msg = f"[User uploaded {len(files)} images: {', '.join(uploaded_info)}]"
+        upload_msg = f"[User uploaded {len(uploaded_files)} images: {', '.join(uploaded_info)}]"
         if not answer:
             answer = upload_msg
         else:

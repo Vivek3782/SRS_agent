@@ -48,7 +48,7 @@ def chat(request: ChatRequest, current_user: User = Depends(get_current_user)):
                 detail="Answer is not allowed in the initial request"
             )
 
-        session_state = initialize_state(None)
+        session_state = initialize_state(None, branding_data=branding_data)
 
     else:
         session_state = initialize_state(stored_state)
