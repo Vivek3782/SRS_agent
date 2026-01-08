@@ -1,10 +1,10 @@
-from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage, HumanMessage
 from app.config import settings
 from app.schemas.branding import CompanyProfile
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, List, Any
 from fastapi import HTTPException
+from app.utils.llm_utils import call_llm_with_fallback
 
 BRANDING_SYSTEM_PROMPT = """
 You are an expert **Brand Strategist and UX Consultant**.
@@ -96,13 +96,7 @@ class BrandingAgentOutput(BaseModel):
 
 class BrandingAgent:
     def __init__(self):
-        self.llm = ChatOpenAI(
-            api_key=settings.openrouter_api_key,
-            base_url=settings.openrouter_base_url,
-            model=settings.openrouter_model,
-            temperature=0.3,
-            model_kwargs={"response_format": {"type": "json_object"}}
-        )
+        pass
 
     def run(self, current_profile: CompanyProfile, last_user_answer: str, last_question: Optional[str] = None) -> BrandingAgentOutput:
         # 1. Serialize current state
@@ -126,9 +120,9 @@ class BrandingAgent:
             )
         ]
 
-        # 3. Invoke AI
+        # 3. Invoke AI with Fallback
         try:
-            response = self.llm.invoke(messages)
+            response = call_llm_with_fallback(messages, temperature=0.3)
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 

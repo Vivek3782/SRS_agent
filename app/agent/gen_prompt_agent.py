@@ -1,9 +1,9 @@
 import json
 import re
-from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage, HumanMessage
 from app.config import settings
 from app.schemas.gen_prompts import PromptGenerationOutput, ScreenDetail
+from app.utils.llm_utils import call_llm_with_fallback
 
 PROMPT_GEN_SYSTEM_PROMPT = """
 You are a Lead Product Engineer and Prompt Specialist.
@@ -39,13 +39,7 @@ DO NOT be generic. Use ACTUAL facts from the Branding Profile (Company Name, Con
 
 class PromptGenerationAgent:
     def __init__(self):
-        self.llm = ChatOpenAI(
-            api_key=settings.openrouter_api_key,
-            base_url=settings.openrouter_base_url,
-            model=settings.openrouter_model,
-            temperature=0.2,
-            model_kwargs={"response_format": {"type": "json_object"}}
-        )
+        pass
 
     def generate(self, sitemap_data: dict, branding_data: dict | None = None) -> PromptGenerationOutput:
         # 1. Determine Project Name
@@ -88,7 +82,7 @@ class PromptGenerationAgent:
         ]
 
         try:
-            response = self.llm.invoke(messages)
+            response = call_llm_with_fallback(messages, temperature=0.2)
             content = response.content.strip()
 
             # Cleanup

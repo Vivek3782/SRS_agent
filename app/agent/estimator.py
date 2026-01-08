@@ -1,10 +1,10 @@
 import json
 import re
-from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage, HumanMessage
 from app.config import settings
 from app.schemas.estimation import SiteMapResponse
 from fastapi import HTTPException
+from app.utils.llm_utils import call_llm_with_fallback
 
 ESTIMATION_SYSTEM_PROMPT = """
 You are an expert UX Architect.
@@ -45,13 +45,7 @@ You must return a SINGLE JSON object with exactly two keys: "business_type" and 
 
 class PageEstimationAgent:
     def __init__(self):
-        self.llm = ChatOpenAI(
-            api_key=settings.openrouter_api_key,
-            base_url=settings.openrouter_base_url,
-            model=settings.openrouter_model,
-            temperature=0.2,
-            model_kwargs={"response_format": {"type": "json_object"}}
-        )
+        pass
 
     def estimate(self, srs_data: dict, branding_data: dict | None) -> SiteMapResponse:
         # 1. Serialize inputs
@@ -81,7 +75,7 @@ class PageEstimationAgent:
         ]
 
         try:
-            response = self.llm.invoke(messages)
+            response = call_llm_with_fallback(messages, temperature=0.2)
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 

@@ -1,27 +1,15 @@
-from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage, HumanMessage
-
 from app.agent.prompt import SYSTEM_PROMPT
 from app.agent.output_parser import AgentOutput
 from app.agent.intent_handler import consume_intent
 from app.config import settings
 from fastapi import HTTPException
+from app.utils.llm_utils import call_llm_with_fallback
+
 
 class RequirementAgent:
     def __init__(self):
-        self.llm = ChatOpenAI(
-            api_key=settings.openrouter_api_key,
-            base_url=settings.openrouter_base_url,
-            model=settings.openrouter_model,
-            temperature=0,
-            default_headers={
-                "HTTP-Referer": "http://localhost",
-                "X-Title": "Requirement-Gathering-Agent"
-            },
-            model_kwargs={
-                "response_format": {"type": "json_object"}
-            }
-        )
+        pass
 
     def run(
         self,
@@ -57,7 +45,8 @@ class RequirementAgent:
         ]
 
         try:
-            response = self.llm.invoke(messages)
+            response = call_llm_with_fallback(
+                messages, temperature=0, response_format="json_object")
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 

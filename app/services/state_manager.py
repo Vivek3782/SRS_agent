@@ -7,38 +7,9 @@ def initialize_state(existing_state: dict | None, branding_data: dict | None = N
         # Pre-fill context from Branding Data if available
         initial_context = {}
         if branding_data:
-            # 1. Project Description from Description + Mission
-            desc = branding_data.get("description", "")
-            mission = branding_data.get("mission", "")
-            full_desc = f"{desc}\n\nMission: {mission}".strip()
-            if full_desc:
-                initial_context["PROJECT_DESCRIPTION"] = full_desc
-
-            # 2. Business Goals (Initial placeholder)
-            name = branding_data.get("name", "")
-            industry = branding_data.get("industry", "")
-            if name or industry:
-                initial_context[
-                    "BUSINESS_GOALS"] = f"Company: {name}\nIndustry: {industry}\n(Please refine specific business goals)"
-
-            # 3. Design / Additional Info
-            visuals = branding_data.get("visual_references", [])
-            refresh_urls = branding_data.get("agency_refresh_urls", [])
-            tone = branding_data.get("brand_voice", "")
-
-            design_notes = []
-            if tone:
-                design_notes.append(f"Brand Voice: {tone}")
-            if refresh_urls:
-                design_notes.append(
-                    f"Reference URLs: {', '.join(refresh_urls)}")
-            if visuals:
-                design_notes.append(
-                    f"Visual Assets Provided: {len(visuals)} items")
-
-            if design_notes:
-                initial_context["ADDITIONAL_INFO"] = "Design Guidelines:\n" + \
-                    "\n".join(design_notes)
+            # Store branding info as background context for the agent to refer to
+            # but do NOT pre-fill requirement fields like PROJECT_DESCRIPTION
+            initial_context["company_profile"] = branding_data
 
         return SessionState(
             phase="INIT",

@@ -14,6 +14,8 @@ INPUT YOU RECEIVE
 - pending_intent (the INTENT of the last question)
 - additional_questions_asked
 
+Note: The `context` may contain a `company_profile` key containing background information about the user's company (name, mission, industry). Use this as background context, but you MUST still gather specific technical requirements through the interview.
+
 ────────────────────────────────
 CRITICAL RULES (NON-NEGOTIABLE)
 

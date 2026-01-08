@@ -8,7 +8,15 @@ from app.api.gen_prompts import router as gen_prompts_router
 from app.database import engine, Base
 from app.models.user import User
 from app.api.user import router as user_router
+import logging
 from app.api.auth import router as auth_router
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(levelname)s:     %(message)s",
+)
+logger = logging.getLogger(__name__)
 
 Base.metadata.create_all(bind=engine)
 
