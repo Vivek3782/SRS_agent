@@ -45,68 +45,13 @@ async def chat_branding(
     # 1. Load State
     state = branding_service.get_state(session_id)
 
-    # 2. Identify files dynamically
-    uploaded_files = []
-    print(f"DEBUG: Processing form with {len(form)} items")
-    for key, value in form.items():
-        is_file = isinstance(value, UploadFile)
-        print(
-            f"DEBUG: Key='{key}', Type={type(value)}, IsUploadFile={is_file}")
-        if is_file:
-            uploaded_files.append((key, value))
-
     # Check if already started (running) but no answer/files provided
-    is_empty_input = (not answer or not str(
-        answer).strip()) and not uploaded_files
+    is_empty_input = (not answer or not str(answer).strip())
     if state.last_question and is_empty_input:
         raise HTTPException(
             status_code=400, detail=f"session {session_id} is already started with last question {state.last_question}")
 
-    # 3. Handle Dynamic File Uploads
-    if uploaded_files:
-        uploaded_info = []
-        for key, file in uploaded_files:
-            # Generate filename using the KEY (e.g., home, dashboard)
-            file_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-
-            # Extract extension
-            orig_filename = file.filename or ""
-            ext = os.path.splitext(orig_filename)[1]
-            if not ext:
-                ext = ""  # or default to .png if needed
-
-            safe_key = "".join(
-                [c if c.isalnum() or c in "._-" else "_" for c in key])
-            filename = f"{file_timestamp}_{safe_key}{ext}"
-
-            session_upload_dir = settings.EXPORT_IMAGES_DIR / session_id
-            os.makedirs(session_upload_dir, exist_ok=True)
-            file_path = session_upload_dir / filename
-
-            # Save the file
-            content = await file.read()
-            with open(file_path, "wb") as f:
-                f.write(content)
-
-            # Update Profile
-            if state.profile.visual_references is None:
-                state.profile.visual_references = []
-
-            # Store relative path for portability
-            rel_path = f"exports_branding_images/{session_id}/{filename}"
-            state.profile.visual_references.append(rel_path)
-
-            # Log the semantic name for the Agent
-            uploaded_info.append(f"{key}{ext}")
-
-        # Inject info into the answer for the LLM
-        upload_msg = f"[User uploaded {len(uploaded_files)} images: {', '.join(uploaded_info)}]"
-        if not answer:
-            answer = upload_msg
-        else:
-            answer = f"{answer} {upload_msg}"
-
-    # 4. Check if already complete
+    # 2. Check if already complete
     if state.is_complete:
         return BrandingCompleteResponse(
             status="COMPLETE",
@@ -129,15 +74,7 @@ async def chat_branding(
         state.last_question = agent_result.next_question
         branding_service.save_state(session_id, state)
 
-        # Proactive Save for special fields (URLs/Images)
-        special_fields = ["agency_refresh_urls",
-                          "external_reference_urls", "visual_references", "color_scheme"]
-        current_profile_dict = state.profile.model_dump()
-        has_special_info = any(current_profile_dict.get(field)
-                               for field in special_fields)
-
-        if has_special_info:
-            save_branding_files(session_id, state.model_dump())
+        # Proactive Save for special fields (REMOVED)
 
         return BrandingAskResponse(
             status="ASK",

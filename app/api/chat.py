@@ -29,6 +29,38 @@ async def chat(request: Request, current_user: User = Depends(get_current_user))
     session_id = form.get("session_id")
     answer = form.get("answer")
 
+    # Handle File Uploads
+    uploaded_files = []
+    for key, value in form.items():
+        if isinstance(value, UploadFile):
+            uploaded_files.append((key, value))
+
+    if uploaded_files:
+        uploaded_info = []
+        session_upload_dir = settings.EXPORT_IMAGES_DIR / session_id
+        os.makedirs(session_upload_dir, exist_ok=True)
+
+        for key, file in uploaded_files:
+            file_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            orig_filename = file.filename or ""
+            ext = os.path.splitext(orig_filename)[1] or ""
+            safe_key = "".join(
+                [c if c.isalnum() or c in "._-" else "_" for c in key])
+            filename = f"{file_timestamp}_{safe_key}{ext}"
+
+            file_path = session_upload_dir / filename
+            content = await file.read()
+            with open(file_path, "wb") as f:
+                f.write(content)
+
+            uploaded_info.append(f"{key}{ext}")
+
+        upload_msg = f"[User uploaded {len(uploaded_files)} files: {', '.join(uploaded_info)}]"
+        if not answer:
+            answer = upload_msg
+        else:
+            answer = f"{answer} {upload_msg}"
+
     if not session_id:
         raise HTTPException(status_code=400, detail="session_id is required")
 
