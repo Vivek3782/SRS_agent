@@ -9,7 +9,7 @@ class PendingIntentModel(BaseModel):
 
 
 class AskOutput(BaseModel):
-    status: Literal["ASK"]
+    status: Literal["ASK", "REJECT"]
     phase: Literal[
         "SCOPE_DEFINITION",
         "INIT",

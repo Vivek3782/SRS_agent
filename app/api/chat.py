@@ -177,7 +177,7 @@ async def websocket_chat(
                 company_profile=session_state.company_profile
             )
 
-            if agent_result.status == "ASK":
+            if agent_result.status in ["ASK", "REJECT"]:
                 redis_service.set_session(
                     session_id,
                     build_ask_state(
@@ -193,7 +193,7 @@ async def websocket_chat(
                 )
 
                 await websocket.send_json({
-                    "status": "ASK",
+                    "status": agent_result.status,
                     "phase": agent_result.phase,
                     "question": agent_result.question,
                     "context": agent_result.updated_context
@@ -327,7 +327,7 @@ async def chat(request: Request, current_user: User = Depends(get_current_user))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-    if agent_result.status == "ASK":
+    if agent_result.status in ["ASK", "REJECT"]:
         redis_service.set_session(
             session_id,
             build_ask_state(
@@ -340,7 +340,7 @@ async def chat(request: Request, current_user: User = Depends(get_current_user))
                 company_profile=session_state.company_profile
             )
         )
-        return AskResponse(status="ASK", phase=agent_result.phase, question=agent_result.question, context=agent_result.updated_context)
+        return AskResponse(status=agent_result.status, phase=agent_result.phase, question=agent_result.question, context=agent_result.updated_context)
 
     if agent_result.status == "COMPLETE":
         if session_state.history:
