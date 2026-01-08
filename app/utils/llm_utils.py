@@ -28,6 +28,18 @@ def clean_json_content(content: str) -> str:
     # 4. Relaxed trailing comma removal (handles ,} and ,])
     content = re.sub(r",\s*([}\]])", r"\1", content)
 
+    # 5. Missing Brace/Bracket Recovery
+    # Count opening and closing braces
+    open_braces = content.count("{")
+    close_braces = content.count("}")
+    if open_braces > close_braces:
+        content += "}" * (open_braces - close_braces)
+
+    open_brackets = content.count("[")
+    close_brackets = content.count("]")
+    if open_brackets > close_brackets:
+        content += "]" * (open_brackets - close_brackets)
+
     return content
 
 

@@ -1,12 +1,11 @@
 from app.agent.intents import IntentType
 from app.utils.merge import (
-    merge_project_description,
+    merge_scope,
     merge_role_definition,
     merge_role_features,
     merge_system_features,
-    merge_non_functional,
-    merge_additional_info,
 )
+
 
 def consume_intent(
     *,
@@ -23,9 +22,11 @@ def consume_intent(
 
     intent_type = intent.get("type")
 
-    if intent_type == IntentType.PROJECT_DESCRIPTION:
-        return merge_project_description(context, answer)
+    # 1. SCOPE - Hardcoded because it drives logic
+    if intent_type in [IntentType.DEFINE_SCOPE, IntentType.SCOPE_CLARIFICATION, IntentType.SCOPE_INQUIRY]:
+        return merge_scope(context, answer)
 
+    # 2. STRUCTURAL DATA - Merge manually to ensure consistent lists
     if intent_type == IntentType.ROLE_DEFINITION:
         return merge_role_definition(context, answer)
 
@@ -36,16 +37,10 @@ def consume_intent(
     if intent_type == IntentType.SYSTEM_FEATURES:
         return merge_system_features(context, answer)
 
-    if intent_type == IntentType.SECURITY_REQUIREMENTS:
-        return merge_non_functional(context, "security", answer)
-
-    if intent_type == IntentType.PERFORMANCE_REQUIREMENTS:
-        return merge_non_functional(context, "performance", answer)
-
-    if intent_type == IntentType.CONSTRAINTS:
-        return merge_non_functional(context, "constraints", answer)
-
-    if intent_type == IntentType.ADDITIONAL_INFO:
-        return merge_additional_info(context, answer)
+    # 3. DESCRIPTIVE DATA (PROJECT_DESCRIPTION, DESIGN, SECURITY, etc.)
+    # We DO NOT merge these in Python.
+    # We let the LLM see the 'answer' and 'original_context' so it can
+    # perform proper summarization and extraction into the 'updated_context'
+    # without receiving a pre-polluted context with raw text dumps.
 
     return context
