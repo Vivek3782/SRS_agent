@@ -4,7 +4,10 @@ from app.agent.output_parser import AgentOutput
 from app.agent.intent_handler import consume_intent
 from app.config import settings
 from fastapi import HTTPException
-from app.utils.llm_utils import call_llm_with_fallback
+from app.utils.llm_utils import call_llm_with_fallback, clean_json_content
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class RequirementAgent:
@@ -52,6 +55,13 @@ class RequirementAgent:
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 
-        # OpenRouter returns JSON string → strict parse
-        parsed = AgentOutput.model_validate_json(response.content)
-        return parsed.root
+        # 4️ Clean and Parse JSON
+        cleaned_content = clean_json_content(response.content)
+        try:
+            parsed = AgentOutput.model_validate_json(cleaned_content)
+            return parsed.root
+        except Exception as parse_err:
+            logger.error(
+                f"JSON Parse Error: {str(parse_err)}\nRaw Content: {response.content}")
+            raise HTTPException(
+                status_code=500, detail=f"AI returned invalid JSON: {str(parse_err)}")

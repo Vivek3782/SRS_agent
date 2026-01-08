@@ -11,12 +11,15 @@ class PendingIntentModel(BaseModel):
 class AskOutput(BaseModel):
     status: Literal["ASK"]
     phase: Literal[
+        "SCOPE_DEFINITION",
         "INIT",
         "BUSINESS",
         "FUNCTIONAL",
+        "DESIGN",
         "NON_FUNCTIONAL",
         "ADDITIONAL"
     ]
+
     question: str
     updated_context: Dict[str, Any]
     pending_intent: PendingIntentModel

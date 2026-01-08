@@ -5,7 +5,7 @@ from app.schemas.state import SessionState
 def initialize_state(existing_state: dict | None, branding_data: dict | None = None) -> SessionState:
     if not existing_state:
         return SessionState(
-            phase="INIT",
+            phase="SCOPE_DEFINITION",
             context={},
             company_profile=branding_data,
             additional_questions_asked=0,

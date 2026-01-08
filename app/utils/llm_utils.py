@@ -2,8 +2,33 @@ from langchain_openai import ChatOpenAI
 from app.config import settings
 from typing import List, Any
 import logging
+import json
+import re
 
 logger = logging.getLogger(__name__)
+
+
+def clean_json_content(content: str) -> str:
+    """
+    Clean LLM response content to ensure it's valid JSON.
+    Removes markdown backticks and common syntax errors like trailing commas.
+    """
+    # 1. Remove markdown code blocks if present
+    content = re.sub(r"```json\s*", "", content)
+    content = re.sub(r"```\s*", "", content)
+    content = content.strip()
+
+    # 2. Remove C-style comments (/* ... */)
+    content = re.sub(r"/\*.*?\*/", "", content, flags=re.DOTALL)
+
+    # 3. Remove single-line comments (// ...)
+    # Be careful not to match // inside a URL string (http://)
+    content = re.sub(r"(?<!:)//.*", "", content)
+
+    # 4. Relaxed trailing comma removal (handles ,} and ,])
+    content = re.sub(r",\s*([}\]])", r"\1", content)
+
+    return content
 
 
 def call_llm_with_fallback(messages: List[Any], temperature: float = 0.3, response_format: str = "json_object") -> Any:

@@ -4,7 +4,10 @@ from app.schemas.branding import CompanyProfile
 from pydantic import BaseModel, Field
 from typing import Optional, List, Any
 from fastapi import HTTPException
-from app.utils.llm_utils import call_llm_with_fallback
+from app.utils.llm_utils import call_llm_with_fallback, clean_json_content
+import logging
+
+logger = logging.getLogger(__name__)
 
 BRANDING_SYSTEM_PROMPT = """
 You are an expert **Brand Strategist and UX Consultant**.
@@ -126,5 +129,12 @@ class BrandingAgent:
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 
-        # 4. Parse JSON Output
-        return BrandingAgentOutput.model_validate_json(response.content)
+        # 4. Clean and Parse JSON Output
+        cleaned_content = clean_json_content(response.content)
+        try:
+            return BrandingAgentOutput.model_validate_json(cleaned_content)
+        except Exception as parse_err:
+            logger.error(
+                f"Branding JSON Parse Error: {str(parse_err)}\nRaw Content: {response.content}")
+            raise HTTPException(
+                status_code=500, detail=f"AI returned invalid JSON: {str(parse_err)}")
