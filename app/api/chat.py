@@ -128,7 +128,8 @@ async def chat(request: Request, current_user: User = Depends(get_current_user))
                 else None
             ),
             additional_questions_asked=session_state.additional_questions_asked,
-            last_question=session_state.last_question.text if session_state.last_question else None
+            last_question=session_state.last_question.text if session_state.last_question else None,
+            company_profile=session_state.company_profile
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -145,7 +146,8 @@ async def chat(request: Request, current_user: User = Depends(get_current_user))
                 additional_questions_asked=agent_result.additional_questions_asked,
                 history=[item.model_dump()
                          # <--- Pass history
-                         for item in session_state.history]
+                         for item in session_state.history],
+                company_profile=session_state.company_profile
             )
         )
 

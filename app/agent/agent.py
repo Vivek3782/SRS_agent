@@ -19,7 +19,8 @@ class RequirementAgent:
         answer,
         pending_intent,
         additional_questions_asked: int,
-        last_question: str = None
+        last_question: str = None,
+        company_profile: dict = None
     ) -> AgentOutput:
 
         # 1️ Apply pending intent BEFORE calling LLM
@@ -36,7 +37,8 @@ class RequirementAgent:
             "answer": answer,
             "last_question": last_question,
             "pending_intent": pending_intent,
-            "additional_questions_asked": additional_questions_asked
+            "additional_questions_asked": additional_questions_asked,
+            "company_profile": company_profile
         }
 
         messages = [

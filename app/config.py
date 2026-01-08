@@ -37,6 +37,12 @@ class Settings(BaseSettings):
     openrouter_model: str = "openai/gpt-oss-120b:free"
     openrouter_fallback_model: str = "xiaomimimo/mimo-v2-flash:free"
 
+    # LangSmith Monitoring
+    langchain_tracing_v2: str = "false"
+    langchain_api_key: str | None = None
+    langchain_project: str = "Default Project"
+    langchain_endpoint: str = "https://api.smith.langchain.com"
+
     # Export
     EXPORT_XLSX_DIR: Path = BASE_DIR / "exports_xlsx"
     PROMPTS_JSON_DIR: Path = BASE_DIR / "exports_prompts_json"

@@ -9,6 +9,7 @@ from app.database import engine, Base
 from app.models.user import User
 from app.api.user import router as user_router
 import logging
+import os
 from app.api.auth import router as auth_router
 
 # Configure logging
@@ -17,6 +18,15 @@ logging.basicConfig(
     format="%(levelname)s:     %(message)s",
 )
 logger = logging.getLogger(__name__)
+
+# LangSmith Monitoring Setup
+if settings.langchain_api_key:
+    os.environ["LANGCHAIN_TRACING_V2"] = settings.langchain_tracing_v2
+    os.environ["LANGCHAIN_API_KEY"] = settings.langchain_api_key
+    os.environ["LANGCHAIN_PROJECT"] = settings.langchain_project
+    os.environ["LANGCHAIN_ENDPOINT"] = settings.langchain_endpoint
+    logger.info(
+        f"LangSmith monitoring enabled for project: {settings.langchain_project}")
 
 Base.metadata.create_all(bind=engine)
 
