@@ -1,9 +1,10 @@
 from datetime import datetime
 from app.models.user import User
 from app.api.deps import get_current_user
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Request
+from starlette.datastructures import UploadFile
+import os
 
-from app.schemas.request import ChatRequest
 from app.schemas.response import AskResponse, CompleteResponse
 from app.schemas.state import ConversationItem
 
@@ -19,21 +20,29 @@ import glob
 router = APIRouter()
 agent = RequirementAgent()
 
-#FIXME: convert ChatRequest to Request for form-data input
+# FIXME: convert ChatRequest to Request for form-data input
+
+
 @router.post("/chat", response_model=AskResponse | CompleteResponse)
-def chat(request: ChatRequest, current_user: User = Depends(get_current_user)):
+async def chat(request: Request, current_user: User = Depends(get_current_user)):
+    form = await request.form()
+    session_id = form.get("session_id")
+    answer = form.get("answer")
+
+    if not session_id:
+        raise HTTPException(status_code=400, detail="session_id is required")
 
     search_pattern = settings.EXPORT_JSON_DIR / \
-        f"requirements_{request.session_id}_*.json"
+        f"requirements_{session_id}_*.json"
     if glob.glob(str(search_pattern)):
         raise HTTPException(
             status_code=400, detail="this project requirements are already completed")
 
     # 1️ Load existing session
-    stored_state = redis_service.get_session(request.session_id)
+    stored_state = redis_service.get_session(session_id)
     if not stored_state:
         # Check if they have finished the Branding Phase
-        branding_data = get_branding_export(request.session_id)
+        branding_data = get_branding_export(session_id)
 
         if not branding_data:
             # BLOCKED: User skipped the branding interview
@@ -42,7 +51,7 @@ def chat(request: ChatRequest, current_user: User = Depends(get_current_user)):
                 detail="Branding Phase Required. Please complete the company profile interview first."
             )
 
-        if request.answer:
+        if answer:
             raise HTTPException(
                 status_code=400,
                 detail="Answer is not allowed in the initial request"
@@ -53,14 +62,14 @@ def chat(request: ChatRequest, current_user: User = Depends(get_current_user)):
     else:
         session_state = initialize_state(stored_state)
 
-    is_empty_answer = request.answer is None or (
-        isinstance(request.answer, dict) and not request.answer)
+    is_empty_answer = answer is None or (
+        isinstance(answer, dict) and not answer)
     if session_state.last_question and is_empty_answer:
         raise HTTPException(
-            status_code=400, detail=f"session {request.session_id} is already started with last question {session_state.last_question.text}")
+            status_code=400, detail=f"session {session_id} is already started with last question {session_state.last_question.text}")
 
     # Normalize empty answers
-    normalized_answer = request.answer
+    normalized_answer = answer
     if isinstance(normalized_answer, dict) and not normalized_answer:
         normalized_answer = None
 
@@ -70,7 +79,7 @@ def chat(request: ChatRequest, current_user: User = Depends(get_current_user)):
             question=session_state.last_question.text,
             answer=str(normalized_answer),
             timestamp=datetime.utcnow().isoformat(),
-            session_id=request.session_id
+            session_id=session_id
         )
         session_state.history.append(new_item)
     # ------------------------------------
@@ -95,7 +104,7 @@ def chat(request: ChatRequest, current_user: User = Depends(get_current_user)):
     # 3️ ASK → store updated state
     if agent_result.status == "ASK":
         redis_service.set_session(
-            request.session_id,
+            session_id,
             build_ask_state(
                 phase=agent_result.phase,
                 context=agent_result.updated_context,
@@ -119,15 +128,15 @@ def chat(request: ChatRequest, current_user: User = Depends(get_current_user)):
     if agent_result.status == "COMPLETE":
         if session_state.history:
             save_to_excel(
-                session_id=request.session_id,
+                session_id=session_id,
                 history=[item.model_dump() for item in session_state.history]
             )
             save_requirements(
-                session_id=request.session_id,
+                session_id=session_id,
                 requirements=agent_result.requirements
             )
 
-        redis_service.delete_session(request.session_id)
+        redis_service.delete_session(session_id)
 
         return CompleteResponse(
             status="COMPLETE",
