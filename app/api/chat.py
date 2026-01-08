@@ -1,12 +1,14 @@
 from datetime import datetime
 from app.models.user import User
-from app.api.deps import get_current_user
-from fastapi import APIRouter, HTTPException, Depends, Request
+from app.api.deps import get_current_user, get_db
+from fastapi import APIRouter, HTTPException, Depends, WebSocket, WebSocketDisconnect, Query, status, Request
 from starlette.datastructures import UploadFile
+from sqlalchemy.orm import Session
 import os
+import json
 
 from app.schemas.response import AskResponse, CompleteResponse
-from app.schemas.state import ConversationItem
+from app.schemas.state import ConversationItem, LastQuestion
 
 from app.services.redis_service import redis_service
 from app.services.state_manager import initialize_state, build_ask_state
@@ -14,22 +16,229 @@ from app.services.export_service import save_to_excel, get_branding_export, save
 
 from app.agent.agent import RequirementAgent
 from app.config import settings
+from app.services.auth_service import auth_service
+from app.services.user_service import user_service
 
 import glob
 
 router = APIRouter()
 agent = RequirementAgent()
 
-# FIXME: convert ChatRequest to Request for form-data input
+
+async def get_websocket_user(websocket: WebSocket, token: str, db: Session):
+    try:
+        payload = auth_service.verify_token(token, None)
+        username = payload.get("sub")
+        if not username:
+            return None
+        return user_service.get_user_by_email(db, email=username)
+    except Exception:
+        return None
+
+
+@router.websocket("/ws/chat/{session_id}")
+async def websocket_chat(
+    websocket: WebSocket,
+    session_id: str,
+    token: str = Query(...),
+    db: Session = Depends(get_db)
+):
+    await websocket.accept()
+
+    # 1. Authenticate
+    current_user = await get_websocket_user(websocket, token, db)
+    if not current_user:
+        await websocket.send_json({
+            "status": "ERROR",
+            "detail": "Unauthorized: Invalid or expired token"
+        })
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        return
+
+    try:
+        # Check if project requirements are already completed
+        search_pattern = settings.EXPORT_JSON_DIR / \
+            f"requirements_{session_id}_*.json"
+        if glob.glob(str(search_pattern)):
+            await websocket.send_json({
+                "status": "ERROR",
+                "detail": "this project requirements are already completed"
+            })
+            await websocket.close()
+            return
+
+        # 2️. Initial Session Load
+        stored_state = redis_service.get_session(session_id)
+        if not stored_state:
+            branding_data = get_branding_export(session_id)
+            if not branding_data:
+                await websocket.send_json({
+                    "status": "ERROR",
+                    "detail": "Branding Phase Required. Please complete the company profile interview first (session check failed)."
+                })
+                await websocket.close()
+                return
+
+            # Start session and get first question
+            session_state = initialize_state(None, branding_data=branding_data)
+        else:
+            session_state = initialize_state(stored_state)
+
+        # 3. If session just started and has no history, run agent once to get initial question
+        if not session_state.last_question and not session_state.history:
+            agent_result = agent.run(
+                phase=session_state.phase,
+                context=session_state.context,
+                answer=None,
+                pending_intent=None,
+                additional_questions_asked=0,
+                last_question=None,
+                company_profile=session_state.company_profile
+            )
+
+            # Save and send initial question
+            session_state.phase = agent_result.phase
+            session_state.context = agent_result.updated_context
+
+            if agent_result.status == "ASK":
+                session_state.last_question = LastQuestion(
+                    text=agent_result.question,
+                    asked_at=datetime.utcnow().isoformat()
+                )
+
+            redis_service.set_session(
+                session_id,
+                build_ask_state(
+                    phase=agent_result.phase,
+                    context=agent_result.updated_context,
+                    question=agent_result.question,
+                    pending_intent=agent_result.pending_intent.model_dump(
+                    ) if agent_result.pending_intent else None,
+                    additional_questions_asked=agent_result.additional_questions_asked,
+                    history=[],
+                    company_profile=session_state.company_profile
+                )
+            )
+
+            await websocket.send_json({
+                "status": "ASK",
+                "phase": agent_result.phase,
+                "question": agent_result.question,
+                "context": agent_result.updated_context
+            })
+        else:
+            # Send current question if already started
+            await websocket.send_json({
+                "status": "ASK",
+                "phase": session_state.phase,
+                "question": session_state.last_question.text,
+                "context": session_state.context
+            })
+
+        # 4. Loop for messages
+        while True:
+            try:
+                # Treat incoming text directly as the answer
+                answer = await websocket.receive_text()
+                if not answer or not answer.strip():
+                    continue
+            except Exception as e:
+                await websocket.send_json({"status": "ERROR", "detail": f"Error receiving message: {str(e)}"})
+                break
+
+            # Note: File uploads are still best handled via REST or
+            # as base64 in the 'answer' field. For now, we assume text 'answer'.
+
+            # Reload session state to ensure fresh data
+            stored_state = redis_service.get_session(session_id)
+            session_state = initialize_state(stored_state)
+
+            if session_state.last_question and answer:
+                new_item = ConversationItem(
+                    question=session_state.last_question.text,
+                    answer=str(answer),
+                    timestamp=datetime.utcnow().isoformat(),
+                    session_id=session_id
+                )
+                session_state.history.append(new_item)
+
+            # Run agent
+            agent_result = agent.run(
+                phase=session_state.phase,
+                context=session_state.context,
+                answer=answer,
+                pending_intent=(
+                    session_state.pending_intent.model_dump()
+                    if session_state.pending_intent
+                    else None
+                ),
+                additional_questions_asked=session_state.additional_questions_asked,
+                last_question=session_state.last_question.text if session_state.last_question else None,
+                company_profile=session_state.company_profile
+            )
+
+            if agent_result.status == "ASK":
+                redis_service.set_session(
+                    session_id,
+                    build_ask_state(
+                        phase=agent_result.phase,
+                        context=agent_result.updated_context,
+                        question=agent_result.question,
+                        pending_intent=agent_result.pending_intent.model_dump(),
+                        additional_questions_asked=agent_result.additional_questions_asked,
+                        history=[item.model_dump()
+                                 for item in session_state.history],
+                        company_profile=session_state.company_profile
+                    )
+                )
+
+                await websocket.send_json({
+                    "status": "ASK",
+                    "phase": agent_result.phase,
+                    "question": agent_result.question,
+                    "context": agent_result.updated_context
+                })
+
+            elif agent_result.status == "COMPLETE":
+                if session_state.history:
+                    save_to_excel(
+                        session_id=session_id,
+                        history=[item.model_dump()
+                                 for item in session_state.history]
+                    )
+                    save_requirements(
+                        session_id=session_id,
+                        requirements=agent_result.requirements
+                    )
+
+                redis_service.delete_session(session_id)
+
+                await websocket.send_json({
+                    "status": "COMPLETE",
+                    "requirements": agent_result.requirements
+                })
+                break
+
+    except WebSocketDisconnect:
+        pass
+    except Exception as e:
+        await websocket.send_json({"status": "ERROR", "detail": str(e)})
+    finally:
+        try:
+            await websocket.close()
+        except:
+            pass
 
 
 @router.post("/chat", response_model=AskResponse | CompleteResponse)
 async def chat(request: Request, current_user: User = Depends(get_current_user)):
+    # Keep the REST endpoint as a fallback or for simple integration
+    # (Existing logic same as before, but maybe user prefers WS now)
     form = await request.form()
     session_id = form.get("session_id")
     answer = form.get("answer")
 
-    # Handle File Uploads
+    # Handle File Uploads (Same as before)
     uploaded_files = []
     for key, value in form.items():
         if isinstance(value, UploadFile):
@@ -70,27 +279,18 @@ async def chat(request: Request, current_user: User = Depends(get_current_user))
         raise HTTPException(
             status_code=400, detail="this project requirements are already completed")
 
-    # 1️ Load existing session
     stored_state = redis_service.get_session(session_id)
     if not stored_state:
-        # Check if they have finished the Branding Phase
         branding_data = get_branding_export(session_id)
-
         if not branding_data:
-            # BLOCKED: User skipped the branding interview
             raise HTTPException(
-                status_code=403,
-                detail="Branding Phase Required. Please complete the company profile interview first."
-            )
+                status_code=403, detail="Branding Phase Required. Please complete the company profile interview first.")
 
         if answer:
             raise HTTPException(
-                status_code=400,
-                detail="Answer is not allowed in the initial request"
-            )
+                status_code=400, detail="Answer is not allowed in the initial request")
 
         session_state = initialize_state(None, branding_data=branding_data)
-
     else:
         session_state = initialize_state(stored_state)
 
@@ -100,12 +300,10 @@ async def chat(request: Request, current_user: User = Depends(get_current_user))
         raise HTTPException(
             status_code=400, detail=f"session {session_id} is already started with last question {session_state.last_question.text}")
 
-    # Normalize empty answers
     normalized_answer = answer
     if isinstance(normalized_answer, dict) and not normalized_answer:
         normalized_answer = None
 
-    # If we have a last question AND an answer, record it
     if session_state.last_question and normalized_answer:
         new_item = ConversationItem(
             question=session_state.last_question.text,
@@ -114,19 +312,14 @@ async def chat(request: Request, current_user: User = Depends(get_current_user))
             session_id=session_id
         )
         session_state.history.append(new_item)
-    # ------------------------------------
 
-    # 2️ Run agent
     try:
         agent_result = agent.run(
             phase=session_state.phase,
             context=session_state.context,
             answer=normalized_answer,
-            pending_intent=(
-                session_state.pending_intent.model_dump()
-                if session_state.pending_intent
-                else None
-            ),
+            pending_intent=(session_state.pending_intent.model_dump()
+                            if session_state.pending_intent else None),
             additional_questions_asked=session_state.additional_questions_asked,
             last_question=session_state.last_question.text if session_state.last_question else None,
             company_profile=session_state.company_profile
@@ -134,7 +327,6 @@ async def chat(request: Request, current_user: User = Depends(get_current_user))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-    # 3️ ASK → store updated state
     if agent_result.status == "ASK":
         redis_service.set_session(
             session_id,
@@ -144,37 +336,19 @@ async def chat(request: Request, current_user: User = Depends(get_current_user))
                 question=agent_result.question,
                 pending_intent=agent_result.pending_intent.model_dump(),
                 additional_questions_asked=agent_result.additional_questions_asked,
-                history=[item.model_dump()
-                         # <--- Pass history
-                         for item in session_state.history],
+                history=[item.model_dump() for item in session_state.history],
                 company_profile=session_state.company_profile
             )
         )
+        return AskResponse(status="ASK", phase=agent_result.phase, question=agent_result.question, context=agent_result.updated_context)
 
-        return AskResponse(
-            status="ASK",
-            phase=agent_result.phase,
-            question=agent_result.question,
-            context=agent_result.updated_context
-        )
-
-    # 4️ COMPLETE → cleanup + return final requirements
     if agent_result.status == "COMPLETE":
         if session_state.history:
-            save_to_excel(
-                session_id=session_id,
-                history=[item.model_dump() for item in session_state.history]
-            )
-            save_requirements(
-                session_id=session_id,
-                requirements=agent_result.requirements
-            )
-
+            save_to_excel(session_id=session_id, history=[
+                          item.model_dump() for item in session_state.history])
+            save_requirements(session_id=session_id,
+                              requirements=agent_result.requirements)
         redis_service.delete_session(session_id)
-
-        return CompleteResponse(
-            status="COMPLETE",
-            requirements=agent_result.requirements
-        )
+        return CompleteResponse(status="COMPLETE", requirements=agent_result.requirements)
 
     raise HTTPException(status_code=500, detail="Invalid agent response")
