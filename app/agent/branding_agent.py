@@ -51,8 +51,14 @@ You MUST ask the user about **EVERY SINGLE ITEM** below. You cannot skip any ite
 4. **STRICT TYPING:**
    - Ensure you follow the data types specified in the **COLLECTION LIST**.
    - **Founding Year** MUST be an integer or `null`. NEVER a string like "20th Century".
-   - **Social Media** MUST be a JSON object.
-   - **URLs/Images** MUST be JSON arrays (lists).
+    - **Social Media** MUST be a JSON object.
+    - **Email, Phone, Website, and URLs/Images** MUST be strings if single, or JSON arrays (lists) if the user provides multiple points of contact.
+5. **Handle NULL Values:**
+   - If a field is `null` or `None`, it means the user has not provided that information yet.
+   - DO NOT set a field to "Not Provided" unless the user has explicitly declined to answer a question about that specific field in the current or previous turn.
+   - If the user says "no", "skip", or "I don't want to provide that" for any field, mark it as "Not Provided" or simply move to the next field. Do not nag them if they have already said no once.
+6. **Hnadle multiple emails, phone numbers, websites, and URLs/Images:**
+   - If the user provides multiple emails, phone numbers, websites, and URLs/Images, then store them as JSON arrays (lists) with description of each email, phone number, website, and URL/Image.
 
 ────────────────────────────────
 **DYNAMIC QUESTIONING RULES**

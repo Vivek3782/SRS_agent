@@ -31,11 +31,12 @@ Your task is to take a Branding Profile and a specific Screen definition (from a
 
 **MISSION:**
 Convert the sitemap requirement for this specific screen into "ready-to-use" prompts for developers, designers, and copywriters. 
-DO NOT be generic. Use ACTUAL facts from the Branding Profile (Company Name, Contact Info, Values, Brand Voice, Color Schemes, and Reference Websites).
+DO NOT be generic. Use ACTUAL facts from the Branding Profile and Design Requirements (Company Name, Contact Info, Brand Voice, Color Schemes, **Current App URL**, and **Inspiration/Style References**).
 
 **INPUTS:**
-1. **Branding Profile:** Context about the company (Name, Mission, Voice, Contact, Color Schemes, Reference URLs, and Visual Assets).
-2. **Screen Definition:** The specific page details (Name, Features, Technical Notes, Complexity).
+1. **Branding Profile:** Context about the company (Name, Mission, Voice).
+2. **Design Requirements:** Detailed visual preferences, **Current App URL** (for refactoring context), and **Inspiration Sources** (for style/behavior references).
+3. **Screen Definition:** The specific page details (Name, Features, Technical Notes, Complexity).
 
 **OUTPUT SCHEMA (Strict JSON):**
 {
@@ -43,16 +44,16 @@ DO NOT be generic. Use ACTUAL facts from the Branding Profile (Company Name, Con
   "complexity": "Low" | "Medium" | "High",
   "notes": "Relevant technical notes",
   "prompts": {
-    "developer": "Detailed implementation prompt. List ALL features for this screen. Specify React/Tailwind, state management, and API needs. Incorporate reference URLs if relevant for UI behavior.",
-    "designer": "Visual design prompt. Use specified color schemes, brand voice, and layout references. Mention specific UI components and visual styles from the assets provided.",
-    "copywriter": "Content strategy prompt. MUST use 'Company Name', 'Contact Info', and 'Brand Voice' from branding. Write actual placeholder headings/CTAs aligning with the mission."
+    "developer": "Detailed implementation prompt. Specify React/Tailwind, state management, and API needs. If a 'Current App URL' is provided, remind the dev this is a refactor of that specific page. Include relevant 'Inspiration URLs' for behavior.",
+    "designer": "Visual design prompt. Use specified color schemes and brand voice. Focus on the style found in the 'Inspiration URLs' and ensure consistency with asset analysis.",
+    "copywriter": "Content strategy prompt. MUST use 'Company Name', 'Contact Info', and 'Brand Voice'. Write placeholder headings/CTAs aligning with the mission."
   }
 }
 
 **CRITICAL RULES:**
-1. **FACT INJECTION:** Instead of "add contact info", provide the ACTUAL contact details, color codes, and specific reference links from branding.
+1. **FACT INJECTION:** Instead of "add contact info", provide the ACTUAL contact details, color codes, and specific reference links.
 2. **FEATURE FOCUS:** Ensure every feature mentioned in the screen definition is included in the developer prompt.
-3. **BRAND ALIGNMENT:** Visual and content prompts must strictly follow the brand voice and color palette (e.g., if brand is 'Luxury' with a 'Gold/Black' scheme, designer prompts must reflect this).
+3. **BRAND ALIGNMENT:** Visual and content prompts must strictly follow the brand voice and color palette.
 4. **NO MARKDOWN:** Return raw JSON only.
 """
 

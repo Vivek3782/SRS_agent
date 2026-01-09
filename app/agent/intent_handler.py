@@ -75,7 +75,7 @@ def consume_intent(
         return merge_additional_info(context, answer)
 
     # Design Routing
-    if intent_type in [IntentType.DESIGN_PREFERENCES, IntentType.REFERENCE_URLS, IntentType.ASSETS_UPLOAD]:
+    if intent_type in [IntentType.DESIGN_PREFERENCES, IntentType.REFERENCE_URLS, IntentType.INSPIRATION_URLS, IntentType.CURRENT_APP_URL, IntentType.ASSETS_UPLOAD]:
         design_key = intent_type.lower()
         return merge_design(context, design_key, answer)
 

@@ -21,9 +21,9 @@ class CompanyProfile(BaseModel):
     founding_year: Optional[int] = None
 
     # Contact Information
-    email: Optional[str] = None
-    phone: Optional[str] = None
-    website: Optional[str] = None
+    email: Optional[Union[str, List[Any]]] = None
+    phone: Optional[Union[str, List[Any]]] = None
+    website: Optional[Union[str, List[Any]]] = None
 
     # Social Media
     # e.g., {"linkedin": "url", "twitter": "handle"}
