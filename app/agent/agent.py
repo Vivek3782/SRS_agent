@@ -1,5 +1,5 @@
 from langchain_core.messages import SystemMessage, HumanMessage
-from app.agent.prompt import SYSTEM_PROMPT
+from app.agent.prompt_2 import SYSTEM_PROMPT
 from app.agent.output_parser import AgentOutput
 from app.agent.intent_handler import consume_intent
 from app.config import settings
@@ -34,13 +34,15 @@ class RequirementAgent:
         )
 
         user_payload = {
-            "phase": phase,
-            "original_context": context,
-            "context": updated_context,
-            "answer": answer,
-            "last_question": last_question,
-            "pending_intent": pending_intent,
-            "additional_questions_asked": additional_questions_asked,
+            "metadata": {
+                "current_phase": phase,
+                "user_answer": answer,
+                "last_question_asked": last_question,
+                "pending_intent": pending_intent,
+                "additional_questions_count": additional_questions_asked
+            },
+            "requirements_registry": updated_context,
+            "original_registry": context,
             "company_profile": company_profile
         }
 

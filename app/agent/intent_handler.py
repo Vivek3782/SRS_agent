@@ -4,6 +4,9 @@ from app.utils.merge import (
     merge_role_definition,
     merge_role_features,
     merge_system_features,
+    merge_migration_strategy,
+    merge_third_party_services,
+    merge_non_functional,
 )
 
 
@@ -37,10 +40,13 @@ def consume_intent(
     if intent_type == IntentType.SYSTEM_FEATURES:
         return merge_system_features(context, answer)
 
-    # 3. DESCRIPTIVE DATA (PROJECT_DESCRIPTION, DESIGN, SECURITY, etc.)
-    # We DO NOT merge these in Python.
-    # We let the LLM see the 'answer' and 'original_context' so it can
-    # perform proper summarization and extraction into the 'updated_context'
-    # without receiving a pre-polluted context with raw text dumps.
+    if intent_type == IntentType.MIGRATION_STRATEGY:
+        return merge_migration_strategy(context, answer)
+
+    if intent_type == IntentType.THIRD_PARTY_SERVICES:
+        return merge_third_party_services(context, answer)
+
+    if intent_type == IntentType.COMPLIANCE_REQUIREMENTS:
+        return merge_non_functional(context, "compliance", answer)
 
     return context

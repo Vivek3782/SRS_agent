@@ -6,6 +6,14 @@ def merge_project_description(context: dict, answer: str) -> dict:
     return context
 
 
+def merge_migration_strategy(context: dict, answer: str) -> dict:
+    if not answer:
+        return context
+
+    context["migration_strategy"] = answer.strip()
+    return context
+
+
 def merge_scope(context: dict, answer: str) -> dict:
     if not answer:
         return context
@@ -102,6 +110,18 @@ def merge_integrations(context: dict, answer: str) -> dict:
         return context
     context.setdefault("integrations", [])
     context["integrations"].append(answer.strip())
+    return context
+
+
+def merge_third_party_services(context: dict, answer: str) -> dict:
+    if not answer:
+        return context
+    context.setdefault("third_party_services", [])
+    context["third_party_services"].extend(
+        [s.strip() for s in answer.split(",") if s.strip()]
+    )
+    context["third_party_services"] = list(
+        set(context["third_party_services"]))
     return context
 
 
