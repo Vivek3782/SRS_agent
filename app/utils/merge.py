@@ -35,6 +35,9 @@ def merge_role_definition(context: dict, answer: str) -> dict:
     """
     Merge role definitions into context.
     """
+    if "roles" in context and not isinstance(context["roles"], dict):
+        context["roles"] = {}
+
     roles = context.setdefault("roles", {})
     for role in answer.split(","):
         role_name = role.strip()
@@ -47,6 +50,10 @@ def merge_role_definition(context: dict, answer: str) -> dict:
 def merge_business_goals(context: dict, answer: str) -> dict:
     if not answer:
         return context
+
+    if "business_goals" in context and not isinstance(context["business_goals"], list):
+        context["business_goals"] = []
+
     context.setdefault("business_goals", [])
     context["business_goals"].append(answer.strip())
     return context
@@ -101,7 +108,12 @@ def merge_system_features(context: dict, answer: str) -> dict:
 def merge_data_entities(context: dict, answer: str) -> dict:
     if not answer:
         return context
-    context["data_entities"] = answer.strip()
+
+    context.setdefault("data_entities", [])
+    if not isinstance(context["data_entities"], list):
+        context["data_entities"] = []
+
+    context["data_entities"].append(answer.strip())
     return context
 
 
@@ -129,14 +141,17 @@ def merge_design(context: dict, key: str, answer: str) -> dict:
     if not answer:
         return context
     context.setdefault("design_requirements", {})
-    # For lists like URLs, try to split if comma separated
-    if key in ["reference_urls", "assets"]:
-        current_list = context["design_requirements"].get(key, [])
-        new_items = [item.strip()
-                     for item in answer.split(",") if item.strip()]
+
+    current_list = context["design_requirements"].get(key, [])
+    # Always treat these as list of items to prevent bloat
+    new_items = [item.strip() for item in answer.split(",") if item.strip()]
+
+    if isinstance(current_list, list):
         context["design_requirements"][key] = current_list + new_items
     else:
-        context["design_requirements"][key] = answer.strip()
+        # Emergency recovery if it was a string
+        context["design_requirements"][key] = [current_list] + new_items
+
     return context
 
 

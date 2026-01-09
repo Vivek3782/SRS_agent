@@ -58,7 +58,31 @@ class RequirementAgent:
             raise HTTPException(status_code=500, detail=str(e))
 
         # 4️ Clean and Parse JSON
-        cleaned_content = clean_json_content(response.content)
+        raw_content = response.content
+        cleaned_content = clean_json_content(raw_content)
+
+        # Extra safety: Ensure it starts and ends with {}
+        cleaned_content = cleaned_content.strip()
+
+        # If the content contains markdown JSON blocks, clean_json_content should handle it,
+        # but let's be extremely safe with raw string stripping
+        if "```json" in cleaned_content:
+            cleaned_content = cleaned_content.split(
+                "```json")[-1].split("```")[0].strip()
+        elif "```" in cleaned_content:
+            cleaned_content = cleaned_content.split(
+                "```")[-1].split("```")[0].strip()
+
+        if not cleaned_content.startswith("{"):
+            idx = cleaned_content.find("{")
+            if idx != -1:
+                cleaned_content = cleaned_content[idx:]
+
+        if not cleaned_content.endswith("}"):
+            idx = cleaned_content.rfind("}")
+            if idx != -1:
+                cleaned_content = cleaned_content[:idx+1]
+
         try:
             parsed = AgentOutput.model_validate_json(cleaned_content)
             return parsed.root

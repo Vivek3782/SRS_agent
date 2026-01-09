@@ -7,6 +7,13 @@ from app.utils.merge import (
     merge_migration_strategy,
     merge_third_party_services,
     merge_non_functional,
+    merge_project_description,
+    merge_business_goals,
+    merge_current_process,
+    merge_data_entities,
+    merge_integrations,
+    merge_design,
+    merge_additional_info,
 )
 
 
@@ -48,5 +55,33 @@ def consume_intent(
 
     if intent_type == IntentType.COMPLIANCE_REQUIREMENTS:
         return merge_non_functional(context, "compliance", answer)
+
+    if intent_type == IntentType.PROJECT_DESCRIPTION:
+        return merge_project_description(context, answer)
+
+    if intent_type == IntentType.BUSINESS_GOALS:
+        return merge_business_goals(context, answer)
+
+    if intent_type == IntentType.CURRENT_PROCESS:
+        return merge_current_process(context, answer)
+
+    if intent_type == IntentType.DATA_ENTITIES:
+        return merge_data_entities(context, answer)
+
+    if intent_type == IntentType.INTEGRATIONS:
+        return merge_integrations(context, answer)
+
+    if intent_type == IntentType.ADDITIONAL_INFO:
+        return merge_additional_info(context, answer)
+
+    # Design Routing
+    if intent_type in [IntentType.DESIGN_PREFERENCES, IntentType.REFERENCE_URLS, IntentType.ASSETS_UPLOAD]:
+        design_key = intent_type.lower()
+        return merge_design(context, design_key, answer)
+
+    # NFR Routing
+    if intent_type in [IntentType.SECURITY_REQUIREMENTS, IntentType.PERFORMANCE_REQUIREMENTS, IntentType.TECH_STACK_PREFERENCE, IntentType.PROJECT_TIMELINE, IntentType.CONSTRAINTS]:
+        nfr_key = intent_type.lower()
+        return merge_non_functional(context, nfr_key, answer)
 
     return context
