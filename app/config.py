@@ -37,6 +37,10 @@ class Settings(BaseSettings):
     openrouter_model: str = "openai/gpt-oss-120b:free"
     openrouter_fallback_model: str = "xiaomi/mimo-v2-flash:free"
 
+    #gemini
+    google_api_key: str
+    gemini_model: str
+
     # LangSmith Monitoring
     langchain_tracing_v2: str = "false"
     langchain_api_key: str | None = None

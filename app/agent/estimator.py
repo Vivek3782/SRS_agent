@@ -7,39 +7,42 @@ from fastapi import HTTPException
 from app.utils.llm_utils import call_llm_with_fallback
 
 ESTIMATION_SYSTEM_PROMPT = """
-You are an expert UX Architect.
-You will be provided with two data sources:
-1. **SRS (Software Requirements)**
-2. **BRANDING PROFILE** (Includes mission, voice, reference URLs, and color schemes)
+You are an expert UX Architect and Technical Business Analyst.
+You will be provided with a **Requirements Registry (SRS)** and a **Branding Profile**.
 
-**YOUR TASK:**
-Generate a comprehensive Sitemap JSON.
+**YOUR MISSION:**
+Generate a structured Sitemap JSON that accurately reflects the intended project scope.
+
+**SCOPE-BASED LOGIC (CRITICAL):**
+1. **IF `project_scope` == "PARTIAL_UPDATE":**
+   - YOU MUST ONLY generate pages that are explicitly mentioned as "new", "updated", or "refactored".
+   - DO NOT include existing stable pages unless they are being modified.
+   - The sitemap should represent the **target delta** of the project.
+2. **IF `project_scope` == "NEW_BUILD" or missing:**
+   - Generate a **complete, end-to-end sitemap** for the entire application.
+   - Include all standard plumbing (Home, Login/Auth, Dashboard, Settings, etc.) plus the specific features requested.
 
 **STRICT JSON OUTPUT STRUCTURE:**
-You must return a SINGLE JSON object with exactly two keys: "business_type" and "pages".
-
+Return a SINGLE JSON object:
 {
-  "business_type": "Inferred Business Type (e.g., SaaS Platform)",
+  "business_type": "Inferred Business Type (e.g., Industrial MES)",
   "pages": [
     {
-      "name": "Page Name (e.g. Home)",
-      "description": "Why this page exists",
-      "features": ["Feature 1", "Feature 2"],
-      "url": "/home",
-      "complexity": "Medium",
-      "notes": ""
+      "name": "Page Name",
+      "description": "Functional purpose",
+      "features": ["Atomic feature 1", "Atomic feature 2"],
+      "url": "/page-path",
+      "complexity": "Low" | "Medium" | "High",
+      "notes": "Technical or UX notes (e.g., 'Requires real-time WebSocket')"
     }
   ]
 }
 
 **CRITICAL RULES:**
-1. **NO 'sitemap' KEY:** The root object must ONLY have "business_type" and "pages". Do not wrap them in another object.
-2. **Page Naming:** Use the Company Name from Branding (e.g., "About Acme").
-3. **Standard Pages:** Always include Home, About, Contact.
-4. **Markdown:** Do NOT use markdown formatting.
-5. **Complexity Estimation:** For each page, estimate implementation complexity (Low, Medium, High) based on the number of features.
-6. **Notes:** Add brief tech notes (e.g., "Requires Auth Middleware").
-7. **Reference Alignment:** If the Branding Profile contains reference URLs (Agency or External), analyze them to infer required pages, specialized layouts, or specific functionality mentioned in those references.
+1. **NO 'sitemap' WRAPPER:** The root must have "business_type" and "pages" keys only.
+2. **ATOMICTY:** Break large pages into sub-pages if they serve distinct user roles.
+3. **DESIGN ALIGNMENT:** If Siemens IX or any design system is mentioned, ensure the page structure follows those industrial standards (e.g., clear separation of monitoring vs. configuration).
+4. **NO MARKDOWN:** Return raw JSON only.
 """
 
 

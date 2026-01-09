@@ -51,7 +51,7 @@ def generate_prompts(request: PromptRequest, current_user: User = Depends(get_cu
     branding_data = get_branding_export(request.session_id)
 
     # 4. Run Agent with enriched context
-    result = agent.generate(sitemap_data, branding_data)
+    result = agent.generate(request.session_id, sitemap_data, branding_data)
 
     save_prompts_data(request.session_id, result.model_dump())
 
