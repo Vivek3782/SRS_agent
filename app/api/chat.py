@@ -20,6 +20,9 @@ from app.services.auth_service import auth_service
 from app.services.user_service import user_service
 
 import glob
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 agent = RequirementAgent()
@@ -235,14 +238,21 @@ async def chat(request: Request, current_user: User = Depends(get_current_user))
     # Keep the REST endpoint as a fallback or for simple integration
     # (Existing logic same as before, but maybe user prefers WS now)
     form = await request.form()
+    logger.info(f"Received request to /chat. Form keys: {list(form.keys())}")
+    for k, v in form.items():
+        logger.info(f"Form field: '{k}', Type: {type(v)}")
+
     session_id = form.get("session_id")
     answer = form.get("answer")
 
     # Handle File Uploads (Same as before)
     uploaded_files = []
     for key, value in form.items():
-        if isinstance(value, UploadFile):
+        # Check if it's an UploadFile object (has filename and file attributes)
+        if hasattr(value, "filename") and hasattr(value, "file"):
             uploaded_files.append((key, value))
+            logger.info(
+                f"Detected file upload: key='{key}', filename='{value.filename}'")
 
     if uploaded_files:
         uploaded_info = []

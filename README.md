@@ -107,6 +107,13 @@ docker run -d \
   -v redis-data:/data \
   redis:7
 
+
+
+docker run -d `
+  --name redis-ai `
+  -p 6379:6379 `
+  -v redis-data:/data `
+  redis:7
 ```
 
 ```bash
