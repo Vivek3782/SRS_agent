@@ -65,15 +65,20 @@ Your `updated_context` MUST follow these exact structures. NEVER convert diction
 2. **UI_UX_IMPROVEMENTS:** Maintain as a nested dictionary.
 3. **PROJECT_DESCRIPTION:** This is the ONLY place for the high-level summary. Keep it to a single, concise paragraph plus 3-5 high-level bullet points.
 4. **BUSINESS_GOALS:** Must be a flat LIST of short strings (e.g., ["Reduce latency by 20%", "Increase adoption"]). NEVER put massive markdown blocks here.
-5. **DATA_ENTITIES, INTEGRATIONS:** Must be flat LISTS of short strings (e.g., ["Work Order ID", "Status indicator"]). **NEVER** use multi-paragraph markdown descriptions.
-6. **DESIGN_REQUIREMENTS:** Must be a dictionary containing:
+5. **DATA_ENTITIES:** Must be a DICTIONARY grouped by entity type (e.g., "Patient", "Inventory"). Each key is the Entity Name, and the value is a LIST of its specific fields/attributes. 
+   - *Correct:* `"data_entities": { "Patient": ["Name", "DOB", "Medical History"] }`
+6. **INTEGRATIONS:** Must be a DICTIONARY grouped by service or category. Each key is the Service Name, and the value is a LIST of integration requirements or endpoints.
+   - *Correct:* `"integrations": { "Payment Gateway": ["Stripe API", "Refund logic"] }`
+7. **DESIGN_REQUIREMENTS:** Must be a dictionary containing:
    - `design_preferences`: List of strings (visual style, vibe, spacing, colors).
    - `current_app_url`: String (The URL of the existing application being updated).
    - `inspiration_urls`: List of strings (**STRICTLY URLs only** or the single string `"Not Provided"`. If the user provided text here, move the descriptive parts to `design_preferences`).
    - `assets_upload`: List of strings (**STRICTLY filenames only**, e.g., "logo.png". Extracted from tags like `[User uploaded ... ]`).
 7. **PROJECT_SCOPE:** This key MUST exist once determined.
-   - Use `"NEW_BUILD"` for completely new projects.
-   - Use `"PARTIAL_UPDATE"` for updates, refactors, or feature additions to existing apps.
+    - Use `"NEW_BUILD"` for completely new projects.
+    - Use `"PARTIAL_UPDATE"` for updates, refactors, or feature additions to existing apps.
+8. **SYSTEM_FEATURES:** Must be a DICTIONARY grouped by logical modules (e.g., "Authentication", "Reporting"). Each key is the Module Name, and the value is a LIST of technical features within that module.
+   - *Correct:* `"system_features": { "Billing": ["Auto-invoice generation", "Stripe integration"] }`
 
 ────────────────────────────────
 CONCISE SUMMARIZATION (CRITICAL)
@@ -93,8 +98,8 @@ You MUST NOT output the following keys. If they exist in the input `requirements
 - **DELETE** any list-based `roles`: Convert to the dictionary format.
 - **REFACTOR (URLs)**: If `reference_urls` exists as a flat list, you MUST analyze the URLs and move them into `current_app_url` (if it's the update target) or `inspiration_urls` (if it's a style reference), then **DELETE** `reference_urls`.
 - **REFACTOR (Design Mis-merges)**: If `requirements_registry` contains descriptive sentences inside `inspiration_urls` or `assets_upload`, you MUST move those sentences to `design_preferences` and leave ONLY valid URLs/filenames in those lists. (Note: `"Not Provided"` is a valid placeholder and should NOT be moved).
-- **REFACTOR (General)**: If `data_entities`, `integrations`, or `design_preferences` are massive strings/paragraphs, you MUST convert them into flat lists of atomic items immediately.
-- **REFACTOR (Role Extraction)**: Continuously scan `system_features` for role-specific logic (e.g., "Admin sees X", "User does Y"). Move these into `roles[RoleName][ui_features]` so you don't ask about them later.
+- **REFACTOR (General Categorization)**: If `data_entities`, `integrations`, `system_features` or `design_preferences` are massive strings or flat lists, you MUST convert them into grouped DICTIONARIES (for data/integrations/features) or flat lists of atomic items immediately. 
+- **REFACTOR (Grouping)**: Ensure every data point or feature is assigned to a logical parent (e.g., Move "First Name" to "Patient" entity, move "Reset Password" to "Authentication" module).
 
 ────────────────────────────────
 PHASE-SPECIFIC MICRO-STRATEGIES (MANDATORY)

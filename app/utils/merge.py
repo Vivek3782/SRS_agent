@@ -118,17 +118,28 @@ def merge_system_features(context: dict, answer: str) -> dict:
     if not answer:
         return context
 
+    if "system_features" not in context:
+        context["system_features"] = []
+
     if isinstance(answer, list):
         features = answer
     else:
         features = [f.strip() for f in str(answer).split(",") if f.strip()]
 
-    if "system_features" not in context or not isinstance(context["system_features"], list):
-        context["system_features"] = []
-
-    for f in features:
-        if f not in context["system_features"]:
-            context["system_features"].append(f)
+    if isinstance(context["system_features"], dict):
+        # Add to a pending list for categorization
+        pending = context["system_features"].setdefault(
+            "Pending Categorization", [])
+        for f in features:
+            if f not in pending:
+                pending.append(f)
+        context["system_features"]["Pending Categorization"] = list(
+            dict.fromkeys(pending))
+    else:
+        # Legacy list behavior
+        for f in features:
+            if f not in context["system_features"]:
+                context["system_features"].append(f)
 
     return context
 
@@ -137,15 +148,30 @@ def merge_data_entities(context: dict, answer: str) -> dict:
     if not answer:
         return context
 
-    if "data_entities" not in context or not isinstance(context["data_entities"], list):
+    # If it's already a dictionary (categorized), don't reset to list
+    if "data_entities" not in context:
         context["data_entities"] = []
 
-    if isinstance(answer, list):
-        context["data_entities"].extend([str(e).strip() for e in answer if e])
+    if isinstance(context["data_entities"], dict):
+        # Add to a pending list for the AI to categorize
+        pending = context["data_entities"].setdefault(
+            "Pending Categorization", [])
+        if isinstance(answer, list):
+            pending.extend([str(e).strip() for e in answer if e])
+        else:
+            pending.append(str(answer).strip())
+        context["data_entities"]["Pending Categorization"] = list(
+            dict.fromkeys(pending))
     else:
-        context["data_entities"].append(str(answer).strip())
+        # Legacy list behavior
+        if isinstance(answer, list):
+            context["data_entities"].extend(
+                [str(e).strip() for e in answer if e])
+        else:
+            context["data_entities"].append(str(answer).strip())
+        context["data_entities"] = list(
+            dict.fromkeys(context["data_entities"]))
 
-    context["data_entities"] = list(dict.fromkeys(context["data_entities"]))
     return context
 
 
@@ -153,15 +179,28 @@ def merge_integrations(context: dict, answer: str) -> dict:
     if not answer:
         return context
 
-    if "integrations" not in context or not isinstance(context["integrations"], list):
+    if "integrations" not in context:
         context["integrations"] = []
 
-    if isinstance(answer, list):
-        context["integrations"].extend([str(i).strip() for i in answer if i])
+    if isinstance(context["integrations"], dict):
+        # Add to a pending list for the AI to categorize
+        pending = context["integrations"].setdefault(
+            "Pending Categorization", [])
+        if isinstance(answer, list):
+            pending.extend([str(i).strip() for i in answer if i])
+        else:
+            pending.append(str(answer).strip())
+        context["integrations"]["Pending Categorization"] = list(
+            dict.fromkeys(pending))
     else:
-        context["integrations"].append(str(answer).strip())
+        # Legacy list behavior
+        if isinstance(answer, list):
+            context["integrations"].extend(
+                [str(i).strip() for i in answer if i])
+        else:
+            context["integrations"].append(str(answer).strip())
+        context["integrations"] = list(dict.fromkeys(context["integrations"]))
 
-    context["integrations"] = list(dict.fromkeys(context["integrations"]))
     return context
 
 
