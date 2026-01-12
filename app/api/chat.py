@@ -189,7 +189,9 @@ async def websocket_chat(
             )
 
             if agent_result.status == "ASK":
-                session_state.asked_questions.append(agent_result.question)
+                q_clean = agent_result.question.strip()
+                if q_clean not in [q.strip() for q in session_state.asked_questions]:
+                    session_state.asked_questions.append(q_clean)
 
             if agent_result.status in ["ASK", "REJECT"]:
                 redis_service.set_session(

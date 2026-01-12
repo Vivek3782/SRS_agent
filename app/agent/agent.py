@@ -40,9 +40,9 @@ class RequirementAgent:
                 "user_answer": answer,
                 "last_question_asked": last_question,
                 "pending_intent": pending_intent,
-                "asked_questions": asked_questions,  # Added this
                 "additional_questions_asked": additional_questions_asked
             },
+            "HISTORY_OF_ASKED_QUESTIONS": asked_questions,
             "requirements_registry": updated_context,
             "original_registry": context,
             "company_profile": company_profile
@@ -87,7 +87,37 @@ class RequirementAgent:
 
         try:
             parsed = AgentOutput.model_validate_json(cleaned_content)
-            return parsed.root
+            agent_output = parsed.root
+
+            # --- Internal Repetition & Fishing Guard ---
+            if agent_output.status == "ASK":
+                generated_q = agent_output.question.strip()
+                q_lower = generated_q.lower()
+
+                # Check for exact duplicates
+                is_duplicate = generated_q in [
+                    q.strip() for q in asked_questions]
+
+                # Check for "Fishing" patterns
+                is_fishing = any(pattern in q_lower for pattern in [
+                                 "are there any other", "such as", "would you like to add", "common entities include"])
+
+                if is_duplicate or is_fishing:
+                    reason = "REPETITION" if is_duplicate else "FISHING/IDEA PITCHING"
+                    logger.warning(
+                        f"Loop/Fishing Detected ({reason}): AI generated '{generated_q}'. Retrying...")
+
+                    retry_messages = messages + [
+                        HumanMessage(content=f"STOP. You just generated: '{generated_q}'. This is forbidden because it is a {reason}. You are STRICTLY FORBIDDEN from 'fishing' for more entities or suggesting what the user might need. If you already have some data, MOVE TO THE NEXT TOPIC/INTENT IMMEDIATELY. Do not use phrases like 'Are there any other' or 'such as'. Ask a direct question about a MISSING area only.")
+                    ]
+
+                    response = call_llm_with_fallback(
+                        retry_messages, temperature=0.3, response_format="json_object")
+                    cleaned_content = clean_json_content(response.content)
+                    parsed = AgentOutput.model_validate_json(cleaned_content)
+                    agent_output = parsed.root
+
+            return agent_output
         except Exception as parse_err:
             logger.error(
                 f"JSON Parse Error: {str(parse_err)}\nRaw Content: {response.content}")

@@ -82,14 +82,31 @@ class PromptGenerationAgent:
             f"Generating prompts for {len(pages)} screens for project: {project_name}")
 
         # 3. Iterate through screens one by one to avoid token limits
+        import time
         for i, page_data in enumerate(pages):
             print(
                 f"Processing screen {i+1}/{len(pages)}: {page_data.get('name')}")
 
-            screen_prompts = self._generate_single_screen(
-                branding_context, visual_context, page_data)
+            # Retry logic for individual screen generation
+            max_retries = 3
+            screen_prompts = None
+            for attempt in range(max_retries):
+                screen_prompts = self._generate_single_screen(
+                    branding_context, visual_context, page_data)
+
+                if screen_prompts:
+                    break
+
+                if attempt < max_retries - 1:
+                    print(
+                        f"Retrying screen '{page_data.get('name')}' (Attempt {attempt + 2}/{max_retries})...")
+                    time.sleep(2)  # Wait 2 seconds before retry
+
             if screen_prompts:
                 screens_output.append(screen_prompts)
+
+            # Tiny delay to avoid aggressive rate limiting
+            time.sleep(0.1)
 
         return PromptGenerationOutput(
             project_name=project_name,
