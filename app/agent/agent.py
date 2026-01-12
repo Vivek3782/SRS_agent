@@ -1,5 +1,5 @@
 from langchain_core.messages import SystemMessage, HumanMessage
-from app.agent.prompt_2 import SYSTEM_PROMPT
+from app.agent.prompt_3 import SYSTEM_PROMPT
 from app.agent.output_parser import AgentOutput
 from app.agent.intent_handler import consume_intent
 from app.config import settings
@@ -23,6 +23,7 @@ class RequirementAgent:
         pending_intent,
         additional_questions_asked: int,
         last_question: str = None,
+        asked_questions: list = [],  # Added this
         company_profile: dict = None
     ) -> AgentOutput:
 
@@ -39,6 +40,7 @@ class RequirementAgent:
                 "user_answer": answer,
                 "last_question_asked": last_question,
                 "pending_intent": pending_intent,
+                "asked_questions": asked_questions,  # Added this
                 "additional_questions_count": additional_questions_asked
             },
             "requirements_registry": updated_context,

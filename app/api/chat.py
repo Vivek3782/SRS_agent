@@ -96,6 +96,8 @@ async def websocket_chat(
                 pending_intent=None,
                 additional_questions_asked=0,
                 last_question=None,
+                # Pass existing (empty) list
+                asked_questions=session_state.asked_questions,
                 company_profile=session_state.company_profile
             )
 
@@ -109,6 +111,10 @@ async def websocket_chat(
                     asked_at=datetime.utcnow().isoformat()
                 )
 
+            # Update asked questions list
+            if agent_result.status == "ASK":
+                session_state.asked_questions.append(agent_result.question)
+
             redis_service.set_session(
                 session_id,
                 build_ask_state(
@@ -119,6 +125,7 @@ async def websocket_chat(
                     ) if agent_result.pending_intent else None,
                     additional_questions_asked=agent_result.additional_questions_asked,
                     history=[],
+                    asked_questions=session_state.asked_questions,
                     company_profile=session_state.company_profile
                 )
             )
@@ -177,8 +184,12 @@ async def websocket_chat(
                 ),
                 additional_questions_asked=session_state.additional_questions_asked,
                 last_question=session_state.last_question.text if session_state.last_question else None,
+                asked_questions=session_state.asked_questions,
                 company_profile=session_state.company_profile
             )
+
+            if agent_result.status == "ASK":
+                session_state.asked_questions.append(agent_result.question)
 
             if agent_result.status in ["ASK", "REJECT"]:
                 redis_service.set_session(
@@ -191,6 +202,7 @@ async def websocket_chat(
                         additional_questions_asked=agent_result.additional_questions_asked,
                         history=[item.model_dump()
                                  for item in session_state.history],
+                        asked_questions=session_state.asked_questions,
                         company_profile=session_state.company_profile
                     )
                 )
@@ -332,10 +344,14 @@ async def chat(request: Request, current_user: User = Depends(get_current_user))
                             if session_state.pending_intent else None),
             additional_questions_asked=session_state.additional_questions_asked,
             last_question=session_state.last_question.text if session_state.last_question else None,
+            asked_questions=session_state.asked_questions,
             company_profile=session_state.company_profile
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+    if agent_result.status == "ASK":
+        session_state.asked_questions.append(agent_result.question)
 
     if agent_result.status in ["ASK", "REJECT"]:
         redis_service.set_session(
@@ -347,6 +363,7 @@ async def chat(request: Request, current_user: User = Depends(get_current_user))
                 pending_intent=agent_result.pending_intent.model_dump(),
                 additional_questions_asked=agent_result.additional_questions_asked,
                 history=[item.model_dump() for item in session_state.history],
+                asked_questions=session_state.asked_questions,
                 company_profile=session_state.company_profile
             )
         )

@@ -29,4 +29,5 @@ class SessionState(BaseModel):
     additional_questions_asked: int = 0
 
     history: List[ConversationItem] = []
+    asked_questions: List[str] = []  # Added this field
     company_profile: Optional[Dict[str, Any]] = None
