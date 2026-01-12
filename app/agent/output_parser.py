@@ -26,7 +26,7 @@ class AskOutput(BaseModel):
     additional_questions_asked: int = 0
 
     model_config = {
-        "extra": "forbid"
+        "extra": "ignore"
     }
 
 
@@ -36,7 +36,7 @@ class CompleteOutput(BaseModel):
     requirements: Dict[str, Any]
 
     model_config = {
-        "extra": "forbid"
+        "extra": "ignore"
     }
 
 

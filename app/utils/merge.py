@@ -118,6 +118,10 @@ def merge_system_features(context: dict, answer: str) -> dict:
     if not answer:
         return context
 
+    # Proactive splitting for multi-line answers
+    if isinstance(answer, str) and ("\n" in answer or "\r" in answer):
+        answer = [line.strip() for line in answer.splitlines() if line.strip()]
+
     if "system_features" not in context:
         context["system_features"] = []
 
@@ -147,6 +151,10 @@ def merge_system_features(context: dict, answer: str) -> dict:
 def merge_data_entities(context: dict, answer: str) -> dict:
     if not answer:
         return context
+
+    # Proactive splitting for multi-line answers
+    if isinstance(answer, str) and ("\n" in answer or "\r" in answer):
+        answer = [line.strip() for line in answer.splitlines() if line.strip()]
 
     # If it's already a dictionary (categorized), don't reset to list
     if "data_entities" not in context:
@@ -178,6 +186,10 @@ def merge_data_entities(context: dict, answer: str) -> dict:
 def merge_integrations(context: dict, answer: str) -> dict:
     if not answer:
         return context
+
+    # Proactive splitting for multi-line answers
+    if isinstance(answer, str) and ("\n" in answer or "\r" in answer):
+        answer = [line.strip() for line in answer.splitlines() if line.strip()]
 
     if "integrations" not in context:
         context["integrations"] = []

@@ -41,7 +41,7 @@ class RequirementAgent:
                 "last_question_asked": last_question,
                 "pending_intent": pending_intent,
                 "asked_questions": asked_questions,  # Added this
-                "additional_questions_count": additional_questions_asked
+                "additional_questions_asked": additional_questions_asked
             },
             "requirements_registry": updated_context,
             "original_registry": context,

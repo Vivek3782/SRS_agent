@@ -80,7 +80,7 @@ def consume_intent(
         return merge_design(context, design_key, answer)
 
     # NFR Routing
-    if intent_type in [IntentType.SECURITY_REQUIREMENTS, IntentType.PERFORMANCE_REQUIREMENTS, IntentType.TECH_STACK_PREFERENCE, IntentType.PROJECT_TIMELINE, IntentType.CONSTRAINTS]:
+    if intent_type in [IntentType.SECURITY_REQUIREMENTS, IntentType.PERFORMANCE_REQUIREMENTS, IntentType.TECH_STACK_PREFERENCE, IntentType.PROJECT_TIMELINE, IntentType.CONSTRAINTS, IntentType.BUDGET]:
         nfr_key = intent_type.lower()
         return merge_non_functional(context, nfr_key, answer)
 
