@@ -85,6 +85,13 @@ def merge_role_features(context: dict, role: str, answer: str) -> dict:
     if not answer or not role:
         return context
 
+    existing_roles = context.get("roles", {})
+    if isinstance(existing_roles, dict):
+        for real_role_name in existing_roles.keys():
+            if real_role_name.lower() == role.lower():
+                role = real_role_name 
+                break
+
     # Extract features safely
     if isinstance(answer, list):
         features = answer

@@ -248,9 +248,6 @@ def save_branding_files(session_id: str, state_data: dict, only_json: bool = Fal
         ws_chat = wb.create_sheet(sheet_chat)
         ws_chat.append(["Question", "User Answer"])
 
-    # We only append NEW history items?
-    # Actually, for simplicity, let's just refresh history or store last saved index.
-    # But since history in state is cumulative, clearing and re-writing is safer.
     if sheet_chat in wb.sheetnames:
         del wb[sheet_chat]
         ws_chat = wb.create_sheet(sheet_chat)

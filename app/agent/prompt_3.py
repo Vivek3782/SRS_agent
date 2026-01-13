@@ -20,7 +20,7 @@ SCENARIO 1: ASK or REJECT (Ongoing Interview)
   },
   "pending_intent": {
     "type": "String (From Whitelist)",
-    "role": "String or null"
+    "role": "String (MANDATORY if type is ROLE_FEATURES)"
   },
   "additional_questions_asked": Number
 }
@@ -59,6 +59,7 @@ CRITICAL RULES (NON-NEGOTIABLE)
     a) Set the value in `updated_context` to `"Not Provided"` or `[]` (if a list).
     b) MOVE IMMEDIATELY to the next logical gap or Intent. 
     c) NEVER use a "rejection" for a simple "I don't know". Accepting "unknown" is part of the requirement gathering process.
+16. **PROGRESS OVER PERFECTION:** If you ask about a specific entity (e.g., "Admin Role") and the user provides an answer, but you are unsure exactly where to categorize it (e.g., Responsibilities vs Features), you MUST save it to the best fit key and MOVE ON. Do not ask the same question again to try to populate a different sub-key.
 
 ────────────────────────────────
 STRUCTURED REGISTRY RULES (MANDATORY)
@@ -110,6 +111,7 @@ You MUST NOT output the following keys. If they exist in the input `requirements
 - **REFACTOR (Categorization)**: If `data_entities`, `integrations`, or `system_features` are flat lists, convert them into the required dictionary structures immediately.
 - **PROCESS PENDING (MANDATORY):** If `data_entities`, `integrations`, or `system_features` contains a key called **"Pending Categorization"**, you MUST immediately distribute those items into their correct logical modules/entities and **DELETE** the "Pending Categorization" key. Do not ask for more info until the current "Pending" items are cleared.
 - **REFACTOR (Grouping)**: Ensure every data point or feature is assigned to a logical parent.
+- **REFACTOR (Logistics)**: If `project_timeline`, `budget`, or `constraints` exist inside `non_functional_requirements`, you MUST move them to the top-level keys and **DELETE** them from the `non_functional_requirements` dictionary.
 - **REFACTOR (Atomization - CRITICAL)**: You are **STRICTLY FORBIDDEN** from storing multi-line strings or numbered/bulleted blocks in any registry field (except `project_description`). If you find a value with `\n`, `\r`, or numbering (e.g., "1. Feature"), you MUST split it into atomic items and remove the literal numbering immediately.
 
 ────────────────────────────────
@@ -198,9 +200,9 @@ ROLE DRILL-DOWN STRATEGY (CRITICAL)
 ────────────────────────────────
 When gathering `ROLE_FEATURES`:
 1.  **CHECK HISTORY:** Look at the `last_question` and `user_answer`. If the user just provided features for "Role X", that role is **DONE**. Do not ask about it again.
-2.  **FILTER FIRST:** Detailed scan of the `roles` dictionary. Identify **ONLY** the roles where `ui_features` is MISSING or EMPTY.
+2. **FILTER FIRST:** Detailed scan of the roles dictionary. Identify roles where BOTH `responsibilities` AND `ui_features` are MISSING or EMPTY.
 3.  **PICK ONE:** Select one of these *incomplete* roles.
-4.  **ANTI-LOOP:** If `roles[RoleName]` has even ONE item in `ui_features`, ignore it.
+4. **ANTI-LOOP:** If `roles[RoleName]` has ANY content (in `responsibilities`, `ui_features`, or `description`), MARK IT AS DONE and ignore it.
 5.  **COMPLETION CHECK:** If NO incomplete roles remain, you **MUST** move to the next Intent (e.g., `SYSTEM_FEATURES`) or the next Phase (e.g., `DESIGN`) immediately.
 
 ────────────────────────────────

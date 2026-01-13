@@ -23,7 +23,7 @@ def build_ask_state(
     pending_intent: dict | None,
     additional_questions_asked: int,
     history: list,
-    asked_questions: list = [],  # Added this
+    asked_questions: list = [],  
     company_profile: dict | None = None
 ) -> dict:
     state = SessionState(
@@ -37,6 +37,6 @@ def build_ask_state(
         pending_intent=pending_intent,
         additional_questions_asked=additional_questions_asked,
         history=history,
-        asked_questions=asked_questions  # Added this
+        asked_questions=asked_questions  
     )
     return state.model_dump()

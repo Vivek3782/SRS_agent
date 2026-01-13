@@ -1,4 +1,3 @@
-from app.agent.intents import IntentType
 from app.utils.merge import (
     merge_scope,
     merge_role_definition,
@@ -15,6 +14,10 @@ from app.utils.merge import (
     merge_design,
     merge_additional_info,
 )
+from app.agent.intents import IntentType
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def consume_intent(
@@ -42,6 +45,10 @@ def consume_intent(
 
     if intent_type == IntentType.ROLE_FEATURES:
         role = intent.get("role")
+        if not role:
+            logger.error(
+                f"CRITICAL: Received ROLE_FEATURES intent but 'role' is missing. Answer '{answer}' was DROPPED.")
+            return context
         return merge_role_features(context, role, answer)
 
     if intent_type == IntentType.SYSTEM_FEATURES:
@@ -80,8 +87,13 @@ def consume_intent(
         return merge_design(context, design_key, answer)
 
     # NFR Routing
-    if intent_type in [IntentType.SECURITY_REQUIREMENTS, IntentType.PERFORMANCE_REQUIREMENTS, IntentType.TECH_STACK_PREFERENCE, IntentType.PROJECT_TIMELINE, IntentType.CONSTRAINTS, IntentType.BUDGET]:
+    if intent_type in [IntentType.SECURITY_REQUIREMENTS, IntentType.PERFORMANCE_REQUIREMENTS, IntentType.TECH_STACK_PREFERENCE]:
         nfr_key = intent_type.lower()
         return merge_non_functional(context, nfr_key, answer)
+
+    # Logistical Routing (Top Level)
+    if intent_type in [IntentType.PROJECT_TIMELINE, IntentType.CONSTRAINTS, IntentType.BUDGET]:
+        context[intent_type.lower()] = str(answer).strip()
+        return context
 
     return context
