@@ -57,12 +57,12 @@ async def websocket_branding(
 
     try:
         # Check if project requirements are already completed
-        search_pattern = settings.EXPORT_JSON_DIR / \
-            f"requirements_{session_id}_*.json"
+        search_pattern = settings.EXPORT_BRANDING_DIR / \
+            f"branding_profile_{session_id}_*.json"
         if glob.glob(str(search_pattern)):
             await websocket.send_json({
                 "status": "ERROR",
-                "detail": "this project requirements are already completed"
+                "detail": "this branding is already completed"
             })
             await websocket.close()
             return

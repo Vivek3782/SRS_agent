@@ -131,7 +131,7 @@ async def websocket_chat(
             )
 
             await websocket.send_json({
-                "status": "ASK",
+                "status": agent_result.status,
                 "phase": agent_result.phase,
                 "question": agent_result.question,
                 "context": agent_result.updated_context
@@ -353,7 +353,9 @@ async def chat(request: Request, current_user: User = Depends(get_current_user))
         raise HTTPException(status_code=500, detail=str(e))
 
     if agent_result.status == "ASK":
-        session_state.asked_questions.append(agent_result.question)
+        q_clean = agent_result.question.strip()
+        if q_clean not in [q.strip() for q in session_state.asked_questions]:
+            session_state.asked_questions.append(q_clean)
 
     if agent_result.status in ["ASK", "REJECT"]:
         redis_service.set_session(
